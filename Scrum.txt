@@ -16,18 +16,34 @@ Elizabeth
 
 2026-01-12
 Minh
+  What did I do yesterday? Set up models.
+  What will I do today? Midterm
+  What impediments are blocking me? NA
+
+Jonathan
+  What did I do yesterday? Set up git and Trello.
+  What will I do today? Midterm.
+  What impediments are blocking me? Need to set up hosting.
+
+Elizabeth
+  What did I do yesterday? Project proposal.
+  What will I do today? Midterm
+  What impediments are blocking me? UI mockups took a long time.
+  
+2026-01-13
+Minh
   What did I do yesterday? 
   What will I do today? 
   What impediments are blocking me? 
 
 Jonathan
-  What did I do yesterday?
-  What will I do today? 
-  What impediments are blocking me?
-
-Elizabeth
   What did I do yesterday? 
   What will I do today? 
   What impediments are blocking me? 
+
+Elizabeth
+  What did I do yesterday? Project proposal.
+  What will I do today? Midterm
+  What impediments are blocking me? UI mockups took a long time.
 
  
