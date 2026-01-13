@@ -1,0 +1,82 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using YouView.Models
+@inject SignInManager<User> SignInManager
+@inject UserManager<User> UserManager
+
+@{
+    // Fetch the current user data to get the ProfilePicUrl
+    var currentUser = await UserManager.GetUserAsync(User);
+}
+
+<nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom sticky-top">
+    <div class="container-fluid">
+        
+        <div class="d-flex align-items-center">
+            <button class="btn btn-light me-3 border-0" type="button" id="sidebarToggle">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <a class="navbar-brand fw-bold d-flex align-items-center" asp-page="/Index">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/4/42/YouTube_icon_%282013-2017%29.png" height="30" class="me-1" alt="Logo">
+                YouView
+            </a>
+        </div>
+
+        <div class="flex-grow-1 mx-4 d-none d-md-block" style="max-width: 600px;">
+            <form class="d-flex" asp-page="/Search" method="get">
+                <div class="input-group">
+                    <input class="form-control rounded-start-pill border-end-0" type="search" name="q" placeholder="Search" aria-label="Search">
+                    <button class="btn btn-light border rounded-end-pill bg-light" type="submit">
+                        🔍 
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div class="d-flex align-items-center">
+            @if (SignInManager.IsSignedIn(User))
+            {
+                <a asp-page="/Studio/Upload" class="btn btn-light rounded-pill border me-2 d-flex align-items-center" title="Create">
+                    <span class="fs-5 me-2">+</span> <span class="d-none d-sm-inline">Create</span>
+                </a>
+
+                <div class="dropdown">
+                    <a href="#" class="d-block link-dark text-decoration-none dropdown-toggle" id="dropdownUser1" data-bs-toggle="dropdown" aria-expanded="false">
+                        
+                        @if (!string.IsNullOrEmpty(currentUser?.ProfilePicUrl))
+                        {
+                            <img src="@currentUser.ProfilePicUrl" alt="Profile" width="32" height="32" class="rounded-circle" style="object-fit: cover;">
+                        }
+                        else
+                        {
+                            <img src="https://ui-avatars.com/api/?name=@(currentUser?.UserName ?? "U")&background=random&color=fff" alt="Profile" width="32" height="32" class="rounded-circle">
+                        }
+                    </a>
+                    
+                    <ul class="dropdown-menu dropdown-menu-end text-small shadow" aria-labelledby="dropdownUser1">
+                        <li>
+                            <div class="dropdown-header">
+                                <strong>@currentUser?.UserName</strong>
+                            </div>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" asp-page="/Profile" asp-route-id="@UserManager.GetUserId(User)">Your Channel</a></li>
+                        <li><a class="dropdown-item" asp-page="/Studio/Index">YouView Studio</a></li>
+                        <li><a class="dropdown-item" asp-area="Identity" asp-page="/Account/Manage/Index">Settings</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <form class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Page("/", new { area = "" })">
+                                <button type="submit" class="dropdown-item text-danger">Sign out</button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+            }
+            else
+            {
+                <a class="btn btn-outline-primary rounded-pill d-flex align-items-center" asp-area="Identity" asp-page="/Account/Login">
+                    <span class="me-1">👤</span> Sign in
+                </a>
+            }
+        </div>
+    </div>
+</nav>

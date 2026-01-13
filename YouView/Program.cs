@@ -14,10 +14,21 @@ var blobConnectionString = builder.Configuration.GetSection("AzureStorage")["Con
 
 builder.Services.AddDbContext<YouViewDbContext>(options =>
     options.UseSqlServer(connectionString));
+//Register db
+builder.Services.AddDbContext<YouViewDbContext>(options =>
+    options.UseSqlServer(connectionString, sqlOptions => {
+     
+        sqlOptions.EnableRetryOnFailure(
+            maxRetryCount: 5,
+            maxRetryDelay: TimeSpan.FromSeconds(30),
+            errorNumbersToAdd: null
+        );
+    }));
 
 // Register the BlobServiceClient so you can use it in your Upload page
 builder.Services.AddSingleton(x => new BlobServiceClient(blobConnectionString));
 
+//Register Identity
 builder.Services.AddDefaultIdentity<User>(options => {
         options.SignIn.RequireConfirmedAccount = false; // Todo: change to true after and remove this part
         options.Password.RequireDigit = false;
