@@ -526,7 +526,8 @@ namespace YouView.Migrations
 
                     b.HasOne("YouView.Models.Video", "Video")
                         .WithMany()
-                        .HasForeignKey("VideoId");
+                        .HasForeignKey("VideoId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Comment");
 
@@ -587,7 +588,7 @@ namespace YouView.Migrations
                     b.HasOne("YouView.Models.Video", "Video")
                         .WithMany("WatchHistories")
                         .HasForeignKey("VideoId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("User");

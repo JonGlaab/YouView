@@ -12,7 +12,7 @@ using YouView.Data;
 namespace YouView.Migrations
 {
     [DbContext(typeof(YouViewDbContext))]
-    [Migration("20260111044532_InitialCreate")]
+    [Migration("20260113221035_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -529,7 +529,8 @@ namespace YouView.Migrations
 
                     b.HasOne("YouView.Models.Video", "Video")
                         .WithMany()
-                        .HasForeignKey("VideoId");
+                        .HasForeignKey("VideoId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Comment");
 
@@ -590,7 +591,7 @@ namespace YouView.Migrations
                     b.HasOne("YouView.Models.Video", "Video")
                         .WithMany("WatchHistories")
                         .HasForeignKey("VideoId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("User");

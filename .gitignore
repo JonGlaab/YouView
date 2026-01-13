@@ -28,4 +28,3 @@ Thumbs.db
 # Environment Config (Security Risk)
 appsettings.Development.json
 appsettings.local.json
-appsettings.json

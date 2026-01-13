@@ -50,6 +50,19 @@ namespace YouView.Data
                 .WithMany(c => c.Comments)
                 .HasForeignKey(c => c.VideoId)
                 .OnDelete(DeleteBehavior.Restrict);
+            //Watch history
+            modelBuilder.Entity<WatchHistory>()
+                .HasOne(wh => wh.Video)
+                .WithMany(wh => wh.WatchHistories)
+                .HasForeignKey(wh => wh.VideoId)
+                .OnDelete(DeleteBehavior.Restrict);
+            //Likes/Dislikes
+            modelBuilder.Entity<LikeDislike>()
+                .HasOne(ld => ld.Video)
+                .WithMany() 
+                .HasForeignKey(ld => ld.VideoId)
+                .OnDelete(DeleteBehavior.Restrict);
+            
         }
     }
 }

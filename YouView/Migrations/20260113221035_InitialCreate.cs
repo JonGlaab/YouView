@@ -293,7 +293,7 @@ namespace YouView.Migrations
                         column: x => x.VideoId,
                         principalTable: "Videos",
                         principalColumn: "VideoId",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -326,7 +326,8 @@ namespace YouView.Migrations
                         name: "FK_LikeDislikes_Videos_VideoId",
                         column: x => x.VideoId,
                         principalTable: "Videos",
-                        principalColumn: "VideoId");
+                        principalColumn: "VideoId",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateIndex(
