@@ -32,6 +32,22 @@ Elizabeth
   
 2026-01-13
 Minh
+  What did I do yesterday? Midterm
+  What will I do today? 
+  What impediments are blocking me? 
+
+Jonathan
+  What did I do yesterday? Midterm
+  What will I do today? 
+  What impediments are blocking me? 
+
+Elizabeth
+  What did I do yesterday? Midterm
+  What will I do today? 
+  What impediments are blocking me? 
+
+2026-01-14
+Minh
   What did I do yesterday? 
   What will I do today? 
   What impediments are blocking me? 
@@ -42,8 +58,7 @@ Jonathan
   What impediments are blocking me? 
 
 Elizabeth
-  What did I do yesterday? Project proposal.
-  What will I do today? Midterm
-  What impediments are blocking me? UI mockups took a long time.
-
+  What did I do yesterday? 
+  What will I do today? 
+  What impediments are blocking me? 
  
