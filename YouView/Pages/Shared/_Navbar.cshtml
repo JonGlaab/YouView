@@ -33,6 +33,9 @@
         </div>
 
         <div class="d-flex align-items-center gap-2">
+            <a class="btn btn-outline-primary rounded-pill" asp-page="/TempUpload">
+                🚀 Temp Upload
+            </a>
             @if (SignInManager.IsSignedIn(User))
             {
                 <a asp-page="/Studio/Upload" class="btn btn-light rounded-pill border d-flex align-items-center" title="Create Video">
@@ -50,7 +53,7 @@
                             <img src="https://ui-avatars.com/api/?name=@(currentUser?.UserName ?? "U")&background=random&color=fff" alt="Profile" width="32" height="32" class="rounded-circle">
                         }
                     </a>
-                    
+
                     <ul class="dropdown-menu dropdown-menu-end text-small shadow" aria-labelledby="dropdownUser1">
                         <li><h6 class="dropdown-header">@currentUser?.UserName</h6></li>
                         <li><hr class="dropdown-divider"></li>

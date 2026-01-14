@@ -10,7 +10,8 @@ var connectionString = builder.Configuration.GetConnectionString("YouViewDbConne
                        ?? throw new InvalidOperationException("Connection string 'YouViewDbConnection' not found.");
 
 // Read the string from appsettings
-var blobConnectionString = builder.Configuration.GetSection("AzureStorage")["ConnectionString"];
+var blobConnectionString = builder.Configuration.GetConnectionString("AzureStorage")
+                           ?? throw new InvalidOperationException("Connection string 'AzureStorage' not found.");
 
 //Register db
 builder.Services.AddDbContext<YouViewDbContext>(options =>
@@ -45,6 +46,16 @@ builder.Services.AddSingleton(x => new BlobServiceClient(blobConnectionString));
 
 // Add services to the container.
 builder.Services.AddRazorPages();
+
+builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(options =>
+{
+    options.MultipartBodyLengthLimit = 1L * 1024 * 1024 * 1024; // 1 GB
+});
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.Limits.MaxRequestBodySize = 1L * 1024 * 1024 * 1024; // 1 GB
+});
+
 
 var app = builder.Build();
 

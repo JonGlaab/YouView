@@ -1,0 +1,48 @@
+@page
+@model YouView.Pages.TempUpload
+@using Microsoft.AspNetCore.Identity
+@using YouView.Models
+@inject SignInManager<User> SignInManager
+@inject UserManager<User> UserManager
+
+<h2>Upload a Video</h2>
+
+@if (!SignInManager.IsSignedIn(User))
+{
+    <p>Please <a asp-page="/Account/Login">sign in</a> to upload a video.</p>
+}
+else
+{
+    <form method="post" enctype="multipart/form-data">
+        <div class="mb-3">
+            <label for="Title" class="form-label">Title</label>
+            <input type="text" class="form-control" id="Title" name="Title" required />
+        </div>
+
+        <div class="mb-3">
+            <label for="Description" class="form-label">Description</label>
+            <textarea class="form-control" id="Description" name="Description"></textarea>
+        </div>
+
+        <div class="mb-3">
+            <label for="PrivacyStatus" class="form-label">Privacy</label>
+            <select class="form-select" id="PrivacyStatus" name="PrivacyStatus">
+                <option value="Public">Public</option>
+                <option value="Private">Private</option>
+                <option value="Unlisted">Unlisted</option>
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label for="VideoFile" class="form-label">Select Video</label>
+            <input type="file" class="form-control" id="VideoFile" name="VideoFile" accept="video/*" required />
+        </div>
+
+        <button type="submit" class="btn btn-primary">Upload</button>
+    </form>
+
+    @if (!string.IsNullOrEmpty(Model.Message))
+    {
+        <div class="alert alert-info mt-3">@Model.Message</div>
+    }
+}
