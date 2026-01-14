@@ -7,7 +7,7 @@ namespace YouView.Pages
 {
     public class IndexModel : PageModel
     {
-        private readonly YouViewDbContext _context; // CHANGE THIS to your actual DbContext name if different
+        private readonly YouViewDbContext _context;
 
         public IndexModel(YouViewDbContext context)
         {
