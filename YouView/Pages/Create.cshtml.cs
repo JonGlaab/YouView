@@ -5,9 +5,13 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using YouView.Data;
 using YouView.Models;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
+
 
 namespace YouView.Pages
 {
+    [Authorize]
     public class Create : PageModel
     {
         private readonly BlobServiceClient _blobServiceClient;
@@ -26,6 +30,9 @@ namespace YouView.Pages
         [BindProperty] public string Description { get; set; }
 
         [BindProperty] public PrivacyStatus PrivacyStatus { get; set; }
+        
+        [BindProperty] public IFormFile? ThumbnailFile { get; set; }
+
 
         public string Message { get; set; }
 
@@ -36,16 +43,43 @@ namespace YouView.Pages
                 Message = "Please select a video file.";
                 return Page();
             }
-
+            
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+            {
+                Message = "Unable to determine user.";
+                return Page();
+            }
+            
             try
             {
-                // 1️⃣ Upload to Azure Blob Storage
                 var container = _blobServiceClient.GetBlobContainerClient("videos");
                 await container.CreateIfNotExistsAsync();
 
                 var blobName = $"{Guid.NewGuid()}{Path.GetExtension(VideoFile.FileName)}";
                 var blobClient = container.GetBlobClient(blobName);
 
+                string? thumbnailUrl = null;
+
+                if (ThumbnailFile != null && ThumbnailFile.Length > 0)
+                {
+                    var thumbContainer = _blobServiceClient.GetBlobContainerClient("thumbnails");
+                    await thumbContainer.CreateIfNotExistsAsync();
+
+                    var thumbName = $"{Guid.NewGuid()}{Path.GetExtension(ThumbnailFile.FileName)}";
+                    var thumbBlob = thumbContainer.GetBlobClient(thumbName);
+
+                    using var thumbStream = ThumbnailFile.OpenReadStream();
+                    await thumbBlob.UploadAsync(thumbStream, overwrite: true);
+
+                    thumbnailUrl = thumbBlob.Uri.ToString();
+                }
+                else
+                {
+                    thumbnailUrl = "";
+
+                }
+                
                 var uploadOptions = new Azure.Storage.Blobs.Models.BlobUploadOptions
                 {
                     HttpHeaders = new BlobHttpHeaders
@@ -64,10 +98,9 @@ namespace YouView.Pages
 
                 var blobUrl = blobClient.Uri.ToString();
 
-                // 2️⃣ Create Video record in DB
                 var video = new Video
                 {
-                    UserId = "e388a552-d07c-4b47-8caf-869fed5b88a1",
+                    UserId = userId,
                     Title = Title,
                     Description = Description,
                     VideoUrl = blobUrl,
@@ -75,9 +108,10 @@ namespace YouView.Pages
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow,
                     AiSummary = "",
-                    Duration = "00:19",
+                    Duration = "",
                     SubtitlesUrl = "",
-                    ThumbnailUrl = ""
+                    ThumbnailUrl = thumbnailUrl
+
                 };
 
                 _db.Videos.Add(video);
