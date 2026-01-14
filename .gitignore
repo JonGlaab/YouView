@@ -29,3 +29,5 @@ Thumbs.db
 appsettings.Development.json
 appsettings.local.json
 appsettings.json
+
+**/launchSettings.json
