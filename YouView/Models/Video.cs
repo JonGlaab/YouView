@@ -22,7 +22,7 @@ public class Video
     public string Description { get; set; }
     [Required]
     public string VideoUrl { get; set; }
-	public string Duration { get;set}
+	public string Duration { get; set; }
     public string ThumbnailUrl { get; set; }
     public PrivacyStatus PrivacyStatus { get; set; } = PrivacyStatus.Public;
     public string SubtitlesUrl { get; set; }
