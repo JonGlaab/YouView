@@ -12,8 +12,6 @@ var connectionString = builder.Configuration.GetConnectionString("YouViewDbConne
 // Read the string from appsettings
 var blobConnectionString = builder.Configuration.GetSection("AzureStorage")["ConnectionString"];
 
-builder.Services.AddDbContext<YouViewDbContext>(options =>
-    options.UseSqlServer(connectionString));
 //Register db
 builder.Services.AddDbContext<YouViewDbContext>(options =>
     options.UseSqlServer(connectionString, sqlOptions => {
@@ -25,18 +23,25 @@ builder.Services.AddDbContext<YouViewDbContext>(options =>
         );
     }));
 
-// Register the BlobServiceClient so you can use it in your Upload page
+ //Register the BlobServiceClient so you can use it in your Upload page
 builder.Services.AddSingleton(x => new BlobServiceClient(blobConnectionString));
 
 //Register Identity
-builder.Services.AddDefaultIdentity<User>(options => {
-        options.SignIn.RequireConfirmedAccount = false; // Todo: change to true after and remove this part
-        options.Password.RequireDigit = false;
-        options.Password.RequiredLength = 6;
-        options.Password.RequireNonAlphanumeric = false;
-        options.Password.RequireUppercase = false;
-    })
-    .AddEntityFrameworkStores<YouViewDbContext>();
+ builder.Services.AddDefaultIdentity<User>(options => {
+         options.SignIn.RequireConfirmedAccount = false; // Todo: change to true after and remove this part
+         options.Password.RequireDigit = false;
+         options.Password.RequiredLength = 6;
+         options.Password.RequireNonAlphanumeric = false;
+         options.Password.RequireUppercase = false;
+     })
+     .AddEntityFrameworkStores<YouViewDbContext>();
+
+ builder.Services.ConfigureApplicationCookie(options =>
+ {
+     options.LoginPath = "/login";
+     options.LogoutPath = "/logout";
+ });
+
 
 // Add services to the container.
 builder.Services.AddRazorPages();
@@ -62,4 +67,12 @@ app.MapStaticAssets();
 app.MapRazorPages()
    .WithStaticAssets();
 
-app.Run();
+try
+{
+    app.Run();
+}
+catch (Exception ex)
+{
+    Console.WriteLine("Startup failed: " + ex);
+    throw;
+}

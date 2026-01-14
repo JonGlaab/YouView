@@ -1,10 +1,130 @@
 ﻿@page
 @model IndexModel
 @{
-    ViewData["Title"] = "Home page";
+    ViewData["Title"] = "Home";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<style>
+    /* Match the off-white background from your image */
+    body {
+        background-color: #F8F7F4; 
+    }
+
+    .section-title {
+        font-weight: 800;
+        font-size: 2.5rem;
+        color: #222;
+        text-align: center;
+        margin-bottom: 30px;
+        margin-top: 20px;
+    }
+
+    .video-card {
+        background-color: #1F1F1F; /* Dark card background */
+        border-radius: 20px;
+        padding: 20px;
+        color: white;
+        transition: transform 0.2s;
+        height: 100%;
+        position: relative;
+    }
+
+    .video-card:hover {
+        transform: scale(1.02); /* Slight zoom on hover */
+        cursor: pointer;
+    }
+
+    .video-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 15px;
+        line-height: 1.4;
+    }
+
+    .thumbnail-container {
+        position: relative;
+        overflow: hidden;
+        border-radius: 15px;
+    }
+
+    .thumbnail-img {
+        width: 100%;
+        height: auto;
+        display: block;
+        border-radius: 12px;
+    }
+
+    .duration-badge {
+        position: absolute;
+        bottom: 8px;
+        right: 8px;
+        background-color: rgba(0, 0, 0, 0.8); /* Dark semi-transparent background */
+        color: white;
+        padding: 2px 5px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        font-weight: bold;
+    }
+
+    .play-icon {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        font-size: 2rem;
+        color: white;
+        opacity: 0.8;
+    }
+
+    /* Override standard link styles so the whole card is clickable */
+    a.card-link {
+        text-decoration: none;
+        color: inherit;
+    }
+</style>
+
+<div class="container pb-5">
+    
+    <h1 class="section-title">Recent Videos</h1>
+
+    <div class="row g-4">
+        @if (Model.RecentVideos != null && Model.RecentVideos.Any())
+        {
+            @foreach (var video in Model.RecentVideos)
+            {
+                <div class="col-md-4">
+                    <a href="/Watch/@video.VideoId" class="card-link">
+                        <div class="video-card shadow-sm">
+                            
+                            <div class="d-flex align-items-start mb-2">
+                                <i class="bi bi-play-circle me-2 fs-4"></i>
+                                <div class="video-title">@video.Title</div>
+                            </div>
+
+                            <div class="thumbnail-container">
+                                @if (!string.IsNullOrEmpty(video.ThumbnailUrl))
+                                {
+                                    <img src="@video.ThumbnailUrl" alt="@video.Title" class="thumbnail-img" />
+                                }
+                                else
+                                {
+                                    <img src="https://placehold.co/600x400/1F1F1F/white?text=No+Thumbnail" class="thumbnail-img" alt=""/>
+                                }
+
+                                @if (!string.IsNullOrEmpty(video.Duration))
+                                {
+                                <span class="duration-badge">@video.Duration</span>
+                                }
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col-12 text-center text-muted mt-5">
+                <h3>No videos found. Be the first to upload one!</h3>
+            </div>
+        }
+    </div>
 </div>

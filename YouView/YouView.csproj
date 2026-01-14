@@ -22,4 +22,20 @@
     <Folder Include="Pages\Users\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <_ContentIncludedByDefault Remove="Areas\Identity\Pages\Account\ExternalLogin.cshtml" />
+    <_ContentIncludedByDefault Remove="Areas\Identity\Pages\Account\Login.cshtml" />
+    <_ContentIncludedByDefault Remove="Areas\Identity\Pages\Account\Logout.cshtml" />
+    <_ContentIncludedByDefault Remove="Areas\Identity\Pages\Account\Register.cshtml" />
+    <_ContentIncludedByDefault Remove="Areas\Identity\Pages\Account\RegisterConfirmation.cshtml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AdditionalFiles Include="Pages\Account\ExternalLogin.cshtml" />
+    <AdditionalFiles Include="Pages\Account\Login.cshtml" />
+    <AdditionalFiles Include="Pages\Account\Logout.cshtml" />
+    <AdditionalFiles Include="Pages\Account\Register.cshtml" />
+    <AdditionalFiles Include="Pages\Account\RegisterConfirmation.cshtml" />
+  </ItemGroup>
+
 </Project>

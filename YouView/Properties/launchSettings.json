@@ -1,11 +1,13 @@
 {
   "$schema": "https://json.schemastore.org/launchsettings.json",
+  "ASPNETCORE_DETAILEDERRORS": "true",
+
   "profiles": {
     "YouView": {
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": true,
-      "applicationUrl": "https://localhost:7144;http://localhost:5143",
+      "applicationUrl": "http://localhost:5143",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
         "ConnectionStrings__YouViewDbConnection": "Server=tcp:youview-server.database.windows.net,1433;Initial Catalog=youview-database;Persist Security Info=False;User ID=youview-server-admin;Password=YTpmj$Mbo4ax2jT7;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
@@ -25,7 +27,7 @@
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": true,
-      "applicationUrl": "https://localhost:7144;http://localhost:5143",
+      "applicationUrl": "http://localhost:5143",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
         "ConnectionStrings__YouViewDbConnection": "Server=tcp:youview-server.database.windows.net,1433;Initial Catalog=youview-database;Persist Security Info=False;User ID=youview-server-admin;Password=YTpmj$Mbo4ax2jT7;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
