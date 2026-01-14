@@ -54,7 +54,7 @@ Minh
 
 Jonathan
   What did I do yesterday? Login/register, upload a video for Liz to test with.
-  What will I do today? History page. Add first and last name to registration.
+  What will I do today? History page. Add first and last name to registration. Set up hosting for live site.
   What impediments are blocking me? Problems with IDE.
 
 Elizabeth
