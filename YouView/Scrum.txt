@@ -48,17 +48,17 @@ Elizabeth
 
 2026-01-14
 Minh
-  What did I do yesterday? 
-  What will I do today? 
-  What impediments are blocking me? 
+  What did I do yesterday? Finish sql/models and connecting to azure. Also did NavBar.
+  What will I do today? Look into video playback library. Will also check video length and how to have that display.
+  What impediments are blocking me? NA
 
 Jonathan
-  What did I do yesterday? 
-  What will I do today? 
-  What impediments are blocking me? 
+  What did I do yesterday? Login/register, upload a video for Liz to test with.
+  What will I do today? History page. Add first and last name to registration.
+  What impediments are blocking me? Problems with IDE.
 
 Elizabeth
-  What did I do yesterday? 
-  What will I do today? 
-  What impediments are blocking me? 
+  What did I do yesterday? Home page and video streaming.
+  What will I do today? create Profile page. Sizing for homepage videos.
+  What impediments are blocking me? Waiting for uploaded video to test homepage.
  
