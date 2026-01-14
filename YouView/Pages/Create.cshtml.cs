@@ -8,12 +8,12 @@ using YouView.Models;
 
 namespace YouView.Pages
 {
-    public class TempUpload : PageModel
+    public class Create : PageModel
     {
         private readonly BlobServiceClient _blobServiceClient;
         private readonly YouViewDbContext _db;
 
-        public TempUpload(BlobServiceClient blobServiceClient, YouViewDbContext db)
+        public Create(BlobServiceClient blobServiceClient, YouViewDbContext db)
         {
             _blobServiceClient = blobServiceClient;
             _db = db;

@@ -33,12 +33,9 @@
         </div>
 
         <div class="d-flex align-items-center gap-2">
-            <a class="btn btn-outline-primary rounded-pill" asp-page="/TempUpload">
-                🚀 Temp Upload
-            </a>
             @if (SignInManager.IsSignedIn(User))
             {
-                <a asp-page="/Studio/Upload" class="btn btn-light rounded-pill border d-flex align-items-center" title="Create Video">
+                <a asp-page="/Create" class="btn btn-light rounded-pill border d-flex align-items-center" title="Create Video">
                     <span class="fs-5 me-1">+</span> <span class="d-none d-lg-inline">Create</span>
                 </a>
 
