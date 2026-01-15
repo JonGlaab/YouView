@@ -43,6 +43,8 @@ builder.Services.AddScoped<YouView.Services.BlobService>();
      options.LoginPath = "/login";
      options.LogoutPath = "/logout";
  });
+// ffmepg register
+ builder.Services.AddScoped<YouView.Services.VideoProcessor>();
 
 
 // Add services to the container.
@@ -56,6 +58,12 @@ builder.WebHost.ConfigureKestrel(options =>
 {
     options.Limits.MaxRequestBodySize = 1L * 1024 * 1024 * 1024; // 1 GB
 });
+
+builder.Services.Configure<IdentityOptions>(options =>
+{
+    options.User.RequireUniqueEmail = true;
+});
+
 
 
 var app = builder.Build();

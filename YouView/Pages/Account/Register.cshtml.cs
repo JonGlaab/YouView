@@ -22,7 +22,7 @@ namespace YouView.Pages.Account
         private readonly SignInManager<User> _signInManager;
         private readonly UserManager<User> _userManager;
         private readonly IUserStore<User> _userStore;
-        //private readonly IUserEmailStore<User> _emailStore;
+        private readonly IUserEmailStore<User> _emailStore;
         private readonly ILogger<RegisterModel> _logger;
 
         public RegisterModel(
@@ -35,7 +35,7 @@ namespace YouView.Pages.Account
         {
             _userManager = userManager;
             _userStore = userStore;
-            //_emailStore = GetEmailStore();
+            _emailStore = GetEmailStore();
             _signInManager = signInManager;
             _logger = logger;
             //_emailSender = emailSender;
@@ -66,6 +66,19 @@ namespace YouView.Pages.Account
         /// </summary>
         public class InputModel
         {
+            
+            [Required]
+            [Display(Name = "First name")]
+            public string FirstName { get; set; }
+
+            [Required]
+            [Display(Name = "Last name")]
+            public string LastName { get; set; }
+            
+            [Required]
+            [Display(Name = "Username")]
+            public string UserName { get; set; }
+            
             /// <summary>
             ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
             ///     directly from your code. This API may change or be removed in future releases.
@@ -109,11 +122,13 @@ namespace YouView.Pages.Account
             if (ModelState.IsValid)
             {
                 var user = CreateUser();
+                user.FirstName = Input.FirstName;
+                user.LastName = Input.LastName;
                 user.Bio = "";
                 user.ProfilePicUrl = "";
         
-                await _userStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
-                //await _emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
+                await _userStore.SetUserNameAsync(user, Input.UserName, CancellationToken.None);
+                await _emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
                 var result = await _userManager.CreateAsync(user, Input.Password);
         
                 if (result.Succeeded)
@@ -166,13 +181,13 @@ namespace YouView.Pages.Account
             }
         }
 
-        // private IUserEmailStore<User> GetEmailStore()
-        // {
-        //     if (!_userManager.SupportsUserEmail)
-        //     {
-        //         throw new NotSupportedException("The default UI requires a user store with email support.");
-        //     }
-        //     return (IUserEmailStore<User>)_userStore;
-        // }
+        private IUserEmailStore<User> GetEmailStore()
+        {
+            if (!_userManager.SupportsUserEmail)
+            {
+                throw new NotSupportedException("The default UI requires a user store with email support.");
+            }
+            return (IUserEmailStore<User>)_userStore;
+        }
     }
 }
