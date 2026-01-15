@@ -13,6 +13,10 @@ var connectionString = builder.Configuration.GetConnectionString("YouViewDbConne
 var blobConnectionString = builder.Configuration.GetConnectionString("AzureStorage")
                            ?? throw new InvalidOperationException("Connection string 'AzureStorage' not found.");
 
+//Register the BlobServiceClient so you can use it in your Upload page
+builder.Services.AddSingleton(x => new BlobServiceClient(blobConnectionString));
+builder.Services.AddScoped<YouView.Services.BlobService>();
+
 //Register db
 builder.Services.AddDbContext<YouViewDbContext>(options =>
     options.UseSqlServer(connectionString, sqlOptions => {
@@ -23,10 +27,6 @@ builder.Services.AddDbContext<YouViewDbContext>(options =>
             errorNumbersToAdd: null
         );
     }));
-
- //Register the BlobServiceClient so you can use it in your Upload page
-builder.Services.AddSingleton(x => new BlobServiceClient(blobConnectionString));
-builder.Services.AddScoped<YouView.Services.BlobService>();
 
 //Register Identity
  builder.Services.AddDefaultIdentity<User>(options => {
@@ -45,8 +45,7 @@ builder.Services.AddScoped<YouView.Services.BlobService>();
  });
 // ffmepg register
  builder.Services.AddScoped<YouView.Services.VideoProcessor>();
-
-
+ 
 // Add services to the container.
 builder.Services.AddRazorPages();
 

@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using YouView.Models;
 using YouView.Services;
 
-namespace YouView.Areas.Identity.Pages.Account.Manage
+namespace YouView.Pages.Account.Manage
 {
     public class IndexModel : PageModel
     {
