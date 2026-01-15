@@ -55,6 +55,7 @@
                         <li><h6 class="dropdown-header">@currentUser?.UserName</h6></li>
                         <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item" asp-page="/Profile" asp-route-id="@UserManager.GetUserId(User)">Your Channel</a></li>
+                        <li><a class="dropdown-item" href="/Profile/Me">Profile</a></li>
                         <li><a class="dropdown-item" asp-page="/Studio/Index">YouView Studio</a></li>
                         <li><a class="dropdown-item" asp-area="" asp-page="/Account/Manage/Index">Settings</a></li>
                         <li><hr class="dropdown-divider"></li>

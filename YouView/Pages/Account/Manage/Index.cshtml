@@ -1,4 +1,4 @@
-﻿@page
+﻿@page "/Profile/Me"
 @model IndexModel
 @{
     ViewData["Title"] = "Profile";
@@ -7,19 +7,55 @@
 
 <h3>@ViewData["Title"]</h3>
 <partial name="_StatusMessage" for="StatusMessage" />
+
 <div class="row">
     <div class="col-md-6">
         <form id="profile-form" method="post">
             <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
-            <div class="form-floating mb-3">
-                <input asp-for="Username" class="form-control" placeholder="Please choose your username." disabled />
-                <label asp-for="Username" class="form-label"></label>
+            
+            <div class="mb-3 text-center">
+                @if (!string.IsNullOrEmpty(Model.CurrentProfilePicUrl))
+                {
+                    <img src="@Model.CurrentProfilePicUrl" style="width: 150px; height: 150px; object-fit: cover; border-radius: 50%; border: 2px solid #ddd;" />
+                }
+                else
+                {
+                    <div style="width: 150px; height: 150px; background-color: #eee; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;">
+                        <span class="text-muted">No Image</span>
+                    </div>
+                }
             </div>
-            <div class="form-floating mb-3">
-                <input asp-for="Input.PhoneNumber" class="form-control" placeholder="Please enter your phone number."/>
-                <label asp-for="Input.PhoneNumber" class="form-label"></label>
-                <span asp-validation-for="Input.PhoneNumber" class="text-danger"></span>
+
+            <div class="mb-3">
+                <label asp-for="Input.ProfilePictureUpload" class="form-label"></label>
+                <input asp-for="Input.ProfilePictureUpload" type="file" class="form-control" accept="image/*" />
+                <span asp-validation-for="Input.ProfilePictureUpload" class="text-danger"></span>
             </div>
+            
+            <div class="form-floating mb-3">
+                <input asp-for="Input.Username" class="form-control" placeholder="Choose a username" />
+                <label asp-for="Input.Username" class="form-label">Username</label>
+                <span asp-validation-for="Input.Username" class="text-danger"></span>
+            </div>
+
+            <div class="form-floating mb-3">
+                <input asp-for="Input.FirstName" class="form-control" placeholder="First Name" />
+                <label asp-for="Input.FirstName" class="form-label"></label>
+                <span asp-validation-for="Input.FirstName" class="text-danger"></span>
+            </div>
+
+            <div class="form-floating mb-3">
+                <input asp-for="Input.LastName" class="form-control" placeholder="Last Name" />
+                <label asp-for="Input.LastName" class="form-label"></label>
+                <span asp-validation-for="Input.LastName" class="text-danger"></span>
+            </div>
+
+            <div class="form-floating mb-3">
+                <textarea asp-for="Input.Bio" class="form-control" style="height: 100px" placeholder="Tell us about yourself"></textarea>
+                <label asp-for="Input.Bio">Bio</label>
+                <span asp-validation-for="Input.Bio" class="text-danger"></span>
+            </div>
+
             <button id="update-profile-button" type="submit" class="w-100 btn btn-lg btn-primary">Save</button>
         </form>
     </div>

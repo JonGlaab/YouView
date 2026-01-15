@@ -1,75 +1,69 @@
-// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
-#nullable disable
-
-using System;
 using System.ComponentModel.DataAnnotations;
-using System.Text.Encodings.Web;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using YouView.Models;
+using YouView.Services;
 
 namespace YouView.Areas.Identity.Pages.Account.Manage
 {
     public class IndexModel : PageModel
     {
-        private readonly UserManager<IdentityUser> _userManager;
-        private readonly SignInManager<IdentityUser> _signInManager;
+        private readonly UserManager<User> _userManager;
+        private readonly SignInManager<User> _signInManager;
+        private readonly BlobService _blobService;
 
         public IndexModel(
-            UserManager<IdentityUser> userManager,
-            SignInManager<IdentityUser> signInManager)
+            UserManager<User> userManager,
+            SignInManager<User> signInManager,
+            BlobService blobService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
+            _blobService = blobService;
         }
 
-        /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
         public string Username { get; set; }
 
-        /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
+        public string CurrentProfilePicUrl { get; set; }
+
         [TempData]
         public string StatusMessage { get; set; }
 
-        /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
         [BindProperty]
         public InputModel Input { get; set; }
 
-        /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
         public class InputModel
         {
-            /// <summary>
-            ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-            ///     directly from your code. This API may change or be removed in future releases.
-            /// </summary>
-            [Phone]
-            [Display(Name = "Phone number")]
-            public string PhoneNumber { get; set; }
+            [Display(Name = "Username")]
+            public string Username { get; set; }
+
+            [Display(Name = "First Name")]
+            public string FirstName { get; set; }
+
+            [Display(Name = "Last Name")]
+            public string LastName { get; set; }
+
+            [Display(Name = "Bio")]
+            public string Bio { get; set; }
+
+            [Display(Name = "Profile Picture")]
+            public IFormFile ProfilePictureUpload { get; set; }
         }
 
-        private async Task LoadAsync(IdentityUser user)
+        private async Task LoadAsync(User user)
         {
             var userName = await _userManager.GetUserNameAsync(user);
-            var phoneNumber = await _userManager.GetPhoneNumberAsync(user);
 
             Username = userName;
+            CurrentProfilePicUrl = user.ProfilePicUrl;
 
             Input = new InputModel
             {
-                PhoneNumber = phoneNumber
+                Username = userName,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Bio = user.Bio
             };
         }
 
@@ -99,15 +93,47 @@ namespace YouView.Areas.Identity.Pages.Account.Manage
                 return Page();
             }
 
-            var phoneNumber = await _userManager.GetPhoneNumberAsync(user);
-            if (Input.PhoneNumber != phoneNumber)
+            // HANDLE PROFILE PICTURE UPLOAD 
+            if (Input.ProfilePictureUpload != null)
             {
-                var setPhoneResult = await _userManager.SetPhoneNumberAsync(user, Input.PhoneNumber);
-                if (!setPhoneResult.Succeeded)
+                // SAFETY CHECK: Only try to delete if a URL actually exists
+                if (!string.IsNullOrEmpty(user.ProfilePicUrl))
                 {
-                    StatusMessage = "Unexpected error when trying to set phone number.";
+                    await _blobService.DeleteFileAsync(user.ProfilePicUrl);
+                }
+
+                // Upload the new one
+                string newUrl = await _blobService.UploadFileAsync(Input.ProfilePictureUpload);
+
+                // Save URL to Database
+                user.ProfilePicUrl = newUrl;
+
+                // Force Update immediately
+                await _userManager.UpdateAsync(user);
+            }
+
+            // HANDLE USERNAME CHANGE
+            var currentUsername = await _userManager.GetUserNameAsync(user);
+            if (Input.Username != currentUsername)
+            {
+                var setUserNameResult = await _userManager.SetUserNameAsync(user, Input.Username);
+                if (!setUserNameResult.Succeeded)
+                {
+                    StatusMessage = "Unexpected error when trying to set user name.";
                     return RedirectToPage();
                 }
+            }
+
+            // HANDLE CUSTOM FIELDS 
+            if (user.FirstName != Input.FirstName ||
+                user.LastName != Input.LastName ||
+                user.Bio != Input.Bio)
+            {
+                user.FirstName = Input.FirstName;
+                user.LastName = Input.LastName;
+                user.Bio = Input.Bio;
+
+                await _userManager.UpdateAsync(user);
             }
 
             await _signInManager.RefreshSignInAsync(user);

@@ -26,6 +26,7 @@ builder.Services.AddDbContext<YouViewDbContext>(options =>
 
  //Register the BlobServiceClient so you can use it in your Upload page
 builder.Services.AddSingleton(x => new BlobServiceClient(blobConnectionString));
+builder.Services.AddScoped<YouView.Services.BlobService>();
 
 //Register Identity
  builder.Services.AddDefaultIdentity<User>(options => {
