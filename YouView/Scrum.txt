@@ -61,4 +61,36 @@ Elizabeth
   What did I do yesterday? Home page and video streaming.
   What will I do today? create Profile page. Sizing for homepage videos.
   What impediments are blocking me? Waiting for uploaded video to test homepage.
+  
+  2026-01-15
+  Minh
+    What did I do yesterday? added ffmpeg
+    What will I do today? ai summary
+    What impediments are blocking me? nothing ever
+  
+  Jonathan
+    What did I do yesterday? not watch history, make log in more robust and actually connected app to server
+    What will I do today? watch and like history
+    What impediments are blocking me? azure labyrinth menus
+  
+  Elizabeth
+    What did I do yesterday? profile page and editing, uploading profile pics
+    What will I do today? polish profile page, upload more videos
+    What impediments are blocking me? accessing azure containers
+    
+    2026-01-16
+    Minh
+      What did I do yesterday? 
+      What will I do today?
+      What impediments are blocking me?
+    
+    Jonathan
+      What did I do yesterday? 
+      What will I do today?
+      What impediments are blocking me? 
+    
+    Elizabeth
+      What did I do yesterday? 
+      What will I do today? 
+      What impediments are blocking me?
  
