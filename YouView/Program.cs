@@ -58,6 +58,12 @@ builder.WebHost.ConfigureKestrel(options =>
     options.Limits.MaxRequestBodySize = 1L * 1024 * 1024 * 1024; // 1 GB
 });
 
+builder.Services.Configure<IdentityOptions>(options =>
+{
+    options.User.RequireUniqueEmail = true;
+});
+
+
 
 var app = builder.Build();
 
