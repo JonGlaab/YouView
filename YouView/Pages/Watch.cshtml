@@ -25,12 +25,17 @@
         overflow: hidden;
         margin-bottom: 15px; 
         background-color: black;
+        position: relative;
+        padding-top: 56.25%; /* 16:9 Aspect Ratio */
     }
     
     video {
+        position: absolute;
+        top: 0;
+        left: 0;
         width: 100%;
-        display: block;
-        max-height: 600px;
+        height: 100%;
+        object-fit: contain; /* Ensures black bars if aspect ratio doesn't match */
     }
 
     /* The Control Bar (Like/Dislike/Play) */
@@ -48,11 +53,23 @@
         font-size: 1.8rem;
         cursor: pointer;
         transition: transform 0.1s;
+        display: flex;
+        align-items: center;
+        gap: 8px;
     }
 
     .icon-btn:hover {
         transform: scale(1.1);
         color: #ddd;
+    }
+    
+    .icon-btn.active {
+        color: #3ea6ff; /* Blue for active like/dislike */
+    }
+    
+    .count-text {
+        font-size: 1rem;
+        font-weight: bold;
     }
 
     /* The AI Summary Card (Right Column) */
@@ -109,6 +126,8 @@
     }
 </style>
 
+@Html.AntiForgeryToken()
+
 <div class="container mt-4 mb-5">
     <div class="row gx-5">
         
@@ -129,11 +148,20 @@
                     </div>
 
                     <div class="d-flex gap-3">
-                        <button class="icon-btn" title="I like this">
-                            <i class="bi bi-hand-thumbs-up-fill"></i>
+                        <button class="icon-btn @(Model.UserLikeStatus == true ? "active" : "")" 
+                                id="btnLike" 
+                                onclick="toggleLike(true)"
+                                title="I like this">
+                            <i class="bi @(Model.UserLikeStatus == true ? "bi-hand-thumbs-up-fill" : "bi-hand-thumbs-up")"></i>
+                            <span class="count-text" id="likeCount">@Model.LikeCount</span>
                         </button>
-                        <button class="icon-btn" title="I dislike this">
-                            <i class="bi bi-hand-thumbs-down-fill"></i>
+                        
+                        <button class="icon-btn @(Model.UserLikeStatus == false ? "active" : "")" 
+                                id="btnDislike" 
+                                onclick="toggleLike(false)"
+                                title="I dislike this">
+                            <i class="bi @(Model.UserLikeStatus == false ? "bi-hand-thumbs-down-fill" : "bi-hand-thumbs-down")"></i>
+                            <span class="count-text" id="dislikeCount">@Model.DislikeCount</span>
                         </button>
                     </div>
 
@@ -217,3 +245,56 @@
 
     </div>
 </div>
+
+<script>
+    async function toggleLike(isLike) {
+        const videoId = @Model.Video.VideoId;
+        const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+        try {
+            const response = await fetch(`?handler=ToggleLike&id=${videoId}&isLike=${isLike}`, {
+                method: 'POST',
+                headers: {
+                    'RequestVerificationToken': token
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success) {
+                    // Update counts
+                    document.getElementById('likeCount').innerText = data.likes;
+                    document.getElementById('dislikeCount').innerText = data.dislikes;
+
+                    // Update UI state
+                    const btnLike = document.getElementById('btnLike');
+                    const btnDislike = document.getElementById('btnDislike');
+                    const iconLike = btnLike.querySelector('i');
+                    const iconDislike = btnDislike.querySelector('i');
+
+                    // Reset classes
+                    btnLike.classList.remove('active');
+                    btnDislike.classList.remove('active');
+                    iconLike.className = "bi bi-hand-thumbs-up";
+                    iconDislike.className = "bi bi-hand-thumbs-down";
+
+                    if (data.userStatus === true) {
+                        btnLike.classList.add('active');
+                        iconLike.className = "bi bi-hand-thumbs-up-fill";
+                    } else if (data.userStatus === false) {
+                        btnDislike.classList.add('active');
+                        iconDislike.className = "bi bi-hand-thumbs-down-fill";
+                    }
+                } else {
+                    if(data.message === "Not logged in") {
+                        window.location.href = "/Identity/Account/Login";
+                    } else {
+                        alert("Error: " + data.message);
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+</script>

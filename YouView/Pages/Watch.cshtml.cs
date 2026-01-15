@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
@@ -9,13 +10,18 @@ namespace YouView.Pages
     public class WatchModel : PageModel
     {
         private readonly YouViewDbContext _context;
+        private readonly UserManager<User> _userManager;
 
-        public WatchModel(YouViewDbContext context)
+        public WatchModel(YouViewDbContext context, UserManager<User> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
         public Video Video { get; set; } = default!;
+        public bool? UserLikeStatus { get; set; } // null = none, true = like, false = dislike
+        public int LikeCount { get; set; }
+        public int DislikeCount { get; set; }
 
         public async Task<IActionResult> OnGetAsync(int? id)
         {
@@ -36,7 +42,82 @@ namespace YouView.Pages
             }
 
             Video = video;
+
+            // Get Like/Dislike counts
+            LikeCount = await _context.LikeDislikes.CountAsync(l => l.VideoId == id && l.IsLike);
+            DislikeCount = await _context.LikeDislikes.CountAsync(l => l.VideoId == id && !l.IsLike);
+
+            // Check if current user has liked/disliked
+            if (User.Identity.IsAuthenticated)
+            {
+                var userId = _userManager.GetUserId(User);
+                var existingInteraction = await _context.LikeDislikes
+                    .FirstOrDefaultAsync(l => l.VideoId == id && l.UserId == userId);
+                
+                if (existingInteraction != null)
+                {
+                    UserLikeStatus = existingInteraction.IsLike;
+                }
+            }
+
             return Page();
+        }
+
+        public async Task<IActionResult> OnPostToggleLikeAsync(int id, bool isLike)
+        {
+            if (!User.Identity.IsAuthenticated)
+            {
+                return new JsonResult(new { success = false, message = "Not logged in" });
+            }
+
+            var userId = _userManager.GetUserId(User);
+            var existingInteraction = await _context.LikeDislikes
+                .FirstOrDefaultAsync(l => l.VideoId == id && l.UserId == userId);
+
+            if (existingInteraction != null)
+            {
+                if (existingInteraction.IsLike == isLike)
+                {
+                    // User clicked the same button again -> Remove interaction (Toggle off)
+                    _context.LikeDislikes.Remove(existingInteraction);
+                }
+                else
+                {
+                    // User switched from Like to Dislike (or vice versa) -> Update it
+                    existingInteraction.IsLike = isLike;
+                }
+            }
+            else
+            {
+                // New interaction
+                var newInteraction = new LikeDislike
+                {
+                    UserId = userId,
+                    VideoId = id,
+                    IsLike = isLike,
+                    CreatedAt = DateTime.UtcNow
+                };
+                _context.LikeDislikes.Add(newInteraction);
+            }
+
+            await _context.SaveChangesAsync();
+
+            // Return new counts
+            var newLikeCount = await _context.LikeDislikes.CountAsync(l => l.VideoId == id && l.IsLike);
+            var newDislikeCount = await _context.LikeDislikes.CountAsync(l => l.VideoId == id && !l.IsLike);
+            
+            // Determine new status for UI
+            bool? newStatus = null;
+            var updatedInteraction = await _context.LikeDislikes
+                .FirstOrDefaultAsync(l => l.VideoId == id && l.UserId == userId);
+            if (updatedInteraction != null) newStatus = updatedInteraction.IsLike;
+
+            return new JsonResult(new { 
+                success = true, 
+                likes = newLikeCount, 
+                dislikes = newDislikeCount, 
+                userStatus = newStatus 
+            });
         }
     }
 }
