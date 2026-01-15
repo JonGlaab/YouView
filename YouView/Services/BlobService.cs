@@ -5,13 +5,13 @@ namespace YouView.Services
 {
     public class BlobService
     {
-        private readonly string _connectionString;
+        private readonly BlobServiceClient _blobServiceClient;
         private readonly string _profileContainerName;
 
-        public BlobService(IConfiguration configuration)
+        public BlobService(BlobServiceClient blobServiceClient, IConfiguration configuration)
         {
-            _connectionString = configuration["AzureStorage:ConnectionString"];
-            _profileContainerName = configuration["AzureStorage:ProfileContainer"];
+            _blobServiceClient = blobServiceClient;
+            _profileContainerName = configuration["AzureStorage:ProfileContainer"] ?? "profiles";
 
             // Fallback safety check
             if (string.IsNullOrEmpty(_profileContainerName))
@@ -26,8 +26,8 @@ namespace YouView.Services
             var fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
 
             // Connect
-            var blobServiceClient = new BlobServiceClient(_connectionString);
-            var containerClient = blobServiceClient.GetBlobContainerClient(_profileContainerName);
+            var containerClient = _blobServiceClient.GetBlobContainerClient(_profileContainerName);
+            await containerClient.CreateIfNotExistsAsync();
             
             // Ensure container exists
             await containerClient.CreateIfNotExistsAsync();
@@ -52,8 +52,8 @@ namespace YouView.Services
                 var uri = new Uri(fileUrl);
                 var fileName = Path.GetFileName(uri.LocalPath);
 
-                var blobServiceClient = new BlobServiceClient(_connectionString);
-                var containerClient = blobServiceClient.GetBlobContainerClient(_profileContainerName);
+                var containerClient = _blobServiceClient.GetBlobContainerClient(_profileContainerName);
+                await containerClient.CreateIfNotExistsAsync();
                 var blobClient = containerClient.GetBlobClient(fileName);
 
                 await blobClient.DeleteIfExistsAsync();
