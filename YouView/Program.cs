@@ -10,7 +10,8 @@ var connectionString = builder.Configuration.GetConnectionString("YouViewDbConne
                        ?? throw new InvalidOperationException("Connection string 'YouViewDbConnection' not found.");
 
 // Read the string from appsettings
-var blobConnectionString = builder.Configuration.GetConnectionString("AzureStorage")
+var blobConnectionString = builder.Configuration["AzureStorage:ConnectionString"]
+                           ?? builder.Configuration.GetConnectionString("AzureStorage")
                            ?? throw new InvalidOperationException("Connection string 'AzureStorage' not found.");
 
 //Register the BlobServiceClient so you can use it in your Upload page
