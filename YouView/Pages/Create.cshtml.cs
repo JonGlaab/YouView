@@ -1,13 +1,12 @@
-using Azure.Storage;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using System.Security.Claims;
 using YouView.Data;
 using YouView.Models;
-using System.Security.Claims;
-using Microsoft.AspNetCore.Authorization;
-
+using YouView.Services; 
 
 namespace YouView.Pages
 {
@@ -16,23 +15,26 @@ namespace YouView.Pages
     {
         private readonly BlobServiceClient _blobServiceClient;
         private readonly YouViewDbContext _db;
+        private readonly VideoProcessor _videoProcessor;
+        private readonly IWebHostEnvironment _environment;
 
-        public Create(BlobServiceClient blobServiceClient, YouViewDbContext db)
+        public Create(
+            BlobServiceClient blobServiceClient, 
+            YouViewDbContext db, 
+            VideoProcessor videoProcessor, 
+            IWebHostEnvironment environment)
         {
             _blobServiceClient = blobServiceClient;
             _db = db;
+            _videoProcessor = videoProcessor;
+            _environment = environment;
         }
 
         [BindProperty] public IFormFile VideoFile { get; set; }
-
         [BindProperty] public string Title { get; set; }
-
         [BindProperty] public string Description { get; set; }
-
         [BindProperty] public PrivacyStatus PrivacyStatus { get; set; }
-        
-        [BindProperty] public IFormFile? ThumbnailFile { get; set; }
-
+        [BindProperty] public IFormFile? ThumbnailFile { get; set; } 
 
         public string Message { get; set; }
 
@@ -43,88 +45,118 @@ namespace YouView.Pages
                 Message = "Please select a video file.";
                 return Page();
             }
-            
+
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (string.IsNullOrEmpty(userId))
-            {
-                Message = "Unable to determine user.";
-                return Page();
-            }
+            if (string.IsNullOrEmpty(userId)) return Page();
+
+            // Setup Temp Paths
+            var tempFolder = Path.Combine(_environment.WebRootPath, "temp");
+            Directory.CreateDirectory(tempFolder);
+
+            var uniqueId = Guid.NewGuid().ToString();
+            var tempVideoPath = Path.Combine(tempFolder, $"{uniqueId}_{VideoFile.FileName}");
+            var tempThumbPath = Path.Combine(tempFolder, $"{uniqueId}_thumb.jpg");
             
+            // Define GIF Path
+            var tempPreviewPath = Path.Combine(tempFolder, $"{uniqueId}_preview.gif"); 
+            
+
             try
             {
-                var container = _blobServiceClient.GetBlobContainerClient("videos");
-                await container.CreateIfNotExistsAsync();
-
-                var blobName = $"{Guid.NewGuid()}{Path.GetExtension(VideoFile.FileName)}";
-                var blobClient = container.GetBlobClient(blobName);
-
-                string? thumbnailUrl = null;
-
-                if (ThumbnailFile != null && ThumbnailFile.Length > 0)
+                // Save Uploaded Video to Temp File
+                using (var stream = new FileStream(tempVideoPath, FileMode.Create))
                 {
-                    var thumbContainer = _blobServiceClient.GetBlobContainerClient("thumbnails");
-                    await thumbContainer.CreateIfNotExistsAsync();
+                    await VideoFile.CopyToAsync(stream);
+                }
 
-                    var thumbName = $"{Guid.NewGuid()}{Path.GetExtension(ThumbnailFile.FileName)}";
-                    var thumbBlob = thumbContainer.GetBlobClient(thumbName);
+                // Process Video
+                var duration = await _videoProcessor.GetVideoDurationAsync(tempVideoPath);
+                
+                // Generate GIF
+                await _videoProcessor.GenerateGifPreviewAsync(tempVideoPath, tempPreviewPath);
+               
 
-                    using var thumbStream = ThumbnailFile.OpenReadStream();
-                    await thumbBlob.UploadAsync(thumbStream, overwrite: true);
+                // Only generate a thumbnail if the user DIDN'T upload one
+                if (ThumbnailFile == null)
+                {
+                    await _videoProcessor.GenerateThumbnailAsync(tempVideoPath, tempThumbPath);
+                }
 
+                //  Upload Video to Azure
+                var vidContainer = _blobServiceClient.GetBlobContainerClient("videos");
+                await vidContainer.CreateIfNotExistsAsync(PublicAccessType.Blob);
+                var vidBlob = vidContainer.GetBlobClient($"{uniqueId}{Path.GetExtension(VideoFile.FileName)}");
+                
+                await vidBlob.UploadAsync(tempVideoPath, true);
+                var videoUrl = vidBlob.Uri.ToString();
+
+                //  Upload Thumbnail to Azure
+                string thumbnailUrl = "";
+                var thumbContainer = _blobServiceClient.GetBlobContainerClient("thumbnails");
+                await thumbContainer.CreateIfNotExistsAsync(PublicAccessType.Blob);
+
+                if (ThumbnailFile != null)
+                {
+                    var thumbBlob = thumbContainer.GetBlobClient($"{uniqueId}{Path.GetExtension(ThumbnailFile.FileName)}");
+                    using var s = ThumbnailFile.OpenReadStream();
+                    await thumbBlob.UploadAsync(s, true);
                     thumbnailUrl = thumbBlob.Uri.ToString();
                 }
-                else
+                else if (System.IO.File.Exists(tempThumbPath))
                 {
-                    thumbnailUrl = "";
+                    var thumbBlob = thumbContainer.GetBlobClient($"{uniqueId}_thumb.jpg");
+                    await thumbBlob.UploadAsync(tempThumbPath, true);
+                    thumbnailUrl = thumbBlob.Uri.ToString();
+                }
 
+                // Upload GIF to Azure
+                string previewUrl = "";
+                if (System.IO.File.Exists(tempPreviewPath))
+                {
+                    var prevContainer = _blobServiceClient.GetBlobContainerClient("previews");
+                    await prevContainer.CreateIfNotExistsAsync(PublicAccessType.Blob);
+                    var prevBlob = prevContainer.GetBlobClient($"{uniqueId}_preview.gif");
+                    await prevBlob.UploadAsync(tempPreviewPath, true);
+                    previewUrl = prevBlob.Uri.ToString();
                 }
                 
-                var uploadOptions = new Azure.Storage.Blobs.Models.BlobUploadOptions
-                {
-                    HttpHeaders = new BlobHttpHeaders
-                    {
-                        ContentType = "video/mp4"
-                    },
-                    TransferOptions = new Azure.Storage.StorageTransferOptions
-                    {
-                        MaximumTransferSize = 4 * 1024 * 1024, // 4 MB
-                        InitialTransferSize = 4 * 1024 * 1024
-                    }
-                };
 
-                using var stream = VideoFile.OpenReadStream();
-                await blobClient.UploadAsync(stream, uploadOptions);
-
-                var blobUrl = blobClient.Uri.ToString();
-
+                //Save Metadata to Database
                 var video = new Video
                 {
                     UserId = userId,
                     Title = Title,
                     Description = Description,
-                    VideoUrl = blobUrl,
+                    VideoUrl = videoUrl,
+                    ThumbnailUrl = thumbnailUrl,
+                    Duration = duration.ToString(@"hh\:mm\:ss"),
                     PrivacyStatus = PrivacyStatus,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow,
                     AiSummary = "",
-                    Duration = "",
-                    SubtitlesUrl = "",
-                    ThumbnailUrl = thumbnailUrl
-
+                    PreviewUrl = previewUrl, 
+                    SubtitlesUrl = ""
                 };
 
                 _db.Videos.Add(video);
                 await _db.SaveChangesAsync();
 
-                Message = $"Video uploaded! URL: {blobUrl} | Video ID: {video.VideoId}";
+                Message = "Video uploaded successfully!";
+                return Page(); 
             }
             catch (Exception ex)
             {
-                Message = "Upload failed: " + ex.Message;
+                Message = $"Error: {ex.Message}";
+                return Page();
             }
-
-            return Page();
+            finally
+            {
+                //  Cleanup
+                if (System.IO.File.Exists(tempVideoPath)) System.IO.File.Delete(tempVideoPath);
+                if (System.IO.File.Exists(tempThumbPath)) System.IO.File.Delete(tempThumbPath);
+                if (System.IO.File.Exists(tempPreviewPath)) System.IO.File.Delete(tempPreviewPath);
+                
+            }
         }
     }
 }

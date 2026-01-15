@@ -35,9 +35,10 @@
         <div class="d-flex align-items-center gap-2">
             @if (SignInManager.IsSignedIn(User))
             {
-                <a asp-page="/Create" class="btn btn-light rounded-pill border d-flex align-items-center" title="Create Video">
-                    <span class="fs-5 me-1">+</span> <span class="d-none d-lg-inline">Create</span>
-                </a>
+                <a href="#" onclick="window.open('/Create', 'UploadWindow', 'width=600,height=800,scrollbars=yes'); return false;" 
+   				class="btn btn-light rounded-pill border d-flex align-items-center" title="Create Video">
+    			<span class="fs-5 me-1">+</span> <span class="d-none d-lg-inline">Create</span>
+				</a>
 
                 <div class="dropdown">
                     <a href="#" class="d-block link-dark text-decoration-none dropdown-toggle p-1" id="dropdownUser1" data-bs-toggle="dropdown" aria-expanded="false">

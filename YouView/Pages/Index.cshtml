@@ -5,7 +5,7 @@
 }
 
 <style>
-    /* Match the off-white background from your image */
+    /* Match the off-white background from your design */
     body {
         background-color: #F8F7F4; 
     }
@@ -27,11 +27,14 @@
         transition: transform 0.2s;
         height: 100%;
         position: relative;
+        text-decoration: none; /* Remove underline from links */
+        display: block;
     }
 
     .video-card:hover {
         transform: scale(1.02); /* Slight zoom on hover */
         cursor: pointer;
+        color: white;
     }
 
     .video-title {
@@ -39,82 +42,94 @@
         font-weight: 600;
         margin-bottom: 15px;
         line-height: 1.4;
+        color: white;
     }
 
     .thumbnail-container {
         position: relative;
         overflow: hidden;
         border-radius: 15px;
+        width: 100%;
+        padding-top: 56.25%; /* 16:9 Aspect Ratio */
+        background-color: #000;
     }
 
     .thumbnail-img {
+        position: absolute;
+        top: 0;
+        left: 0;
         width: 100%;
-        height: auto;
-        display: block;
-        border-radius: 12px;
+        height: 100%;
+        object-fit: cover;
+        transition: opacity 0.2s ease-in-out;
     }
 
     .duration-badge {
         position: absolute;
         bottom: 8px;
         right: 8px;
-        background-color: rgba(0, 0, 0, 0.8); /* Dark semi-transparent background */
+        background-color: rgba(0, 0, 0, 0.7);
         color: white;
-        padding: 2px 5px;
+        padding: 2px 6px;
         border-radius: 4px;
-        font-size: 0.8rem;
+        font-size: 0.75rem;
         font-weight: bold;
+        pointer-events: none; /* Let clicks pass through */
     }
-
-    .play-icon {
-        position: absolute;
-        top: 20px;
-        left: 20px;
-        font-size: 2rem;
-        color: white;
-        opacity: 0.8;
+    
+    .author-info {
+        font-size: 0.85rem;
+        color: #aaa;
+        margin-top: 8px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
     }
-
-    /* Override standard link styles so the whole card is clickable */
-    a.card-link {
-        text-decoration: none;
-        color: inherit;
+    
+    .author-avatar {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background-color: #444;
+        object-fit: cover;
     }
 </style>
 
 <div class="container pb-5">
-    
-    <h1 class="section-title">Recent Videos</h1>
+    <div class="section-title">Recommended</div>
 
     <div class="row g-4">
         @if (Model.RecentVideos != null && Model.RecentVideos.Any())
         {
             @foreach (var video in Model.RecentVideos)
             {
-                <div class="col-md-4">
-                    <a href="/Watch/@video.VideoId" class="card-link">
-                        <div class="video-card shadow-sm">
-                            
-                            <div class="d-flex align-items-start mb-2">
-                                <i class="bi bi-play-circle me-2 fs-4"></i>
-                                <div class="video-title">@video.Title</div>
-                            </div>
+                <div class="col-12 col-md-6 col-lg-4">
+                    <a asp-page="/Watch" asp-route-id="@video.VideoId" class="video-card shadow-sm">
+                        
+                        <div class="d-flex align-items-start mb-2">
+                            <i class="bi bi-play-circle me-2 fs-4 text-danger"></i>
+                            <div class="video-title">@video.Title</div>
+                        </div>
 
-                            <div class="thumbnail-container">
-                                @if (!string.IsNullOrEmpty(video.ThumbnailUrl))
-                                {
-                                    <img src="@video.ThumbnailUrl" alt="@video.Title" class="thumbnail-img" />
-                                }
-                                else
-                                {
-                                    <img src="https://placehold.co/600x400/1F1F1F/white?text=No+Thumbnail" class="thumbnail-img" alt=""/>
-                                }
+                        <div class="thumbnail-container">
+                            <img src="@(string.IsNullOrEmpty(video.ThumbnailUrl) ? "https://placehold.co/600x400/1F1F1F/white?text=No+Thumbnail" : video.ThumbnailUrl)" 
+                                 data-static="@video.ThumbnailUrl"
+                                 data-preview="@video.PreviewUrl"
+                                 class="thumbnail-img" 
+                                 alt="@video.Title"
+                                 onmouseover="if(this.dataset.preview) this.src = this.dataset.preview"
+                                 onmouseout="if(this.dataset.static) this.src = this.dataset.static" />
 
-                                @if (!string.IsNullOrEmpty(video.Duration))
-                                {
+                            @if (!string.IsNullOrEmpty(video.Duration))
+                            {
                                 <span class="duration-badge">@video.Duration</span>
-                                }
-                            </div>
+                            }
+                        </div>
+                        
+                        <div class="author-info">
+                            <img src="@(string.IsNullOrEmpty(video.User?.ProfilePicUrl) ? "https://ui-avatars.com/api/?name=" + (video.User?.UserName ?? "U") : video.User.ProfilePicUrl)" class="author-avatar" />
+                            <span>@(video.User?.UserName ?? "Unknown User")</span>
+                            <span class="ms-auto">@video.CreatedAt.ToString("MMM dd")</span>
                         </div>
                     </a>
                 </div>
@@ -126,5 +141,20 @@
                 <h3>No videos found. Be the first to upload one!</h3>
             </div>
         }
+    </div>
+
+    <div class="row mt-5">
+        <div class="col-12 text-center">
+            @if (Model.NextCursor.HasValue)
+            {
+                <a asp-page="./Index" asp-route-cursor="@Model.NextCursor" class="btn btn-dark btn-lg px-5 rounded-pill shadow">
+                    Next Page &rarr;
+                </a>
+            }
+            else if (Model.RecentVideos != null && Model.RecentVideos.Any())
+            {
+                <span class="text-muted small">You've reached the end of the internet 🎬</span>
+            }
+        </div>
     </div>
 </div>
