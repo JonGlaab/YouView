@@ -42,6 +42,8 @@ builder.Services.AddSingleton(x => new BlobServiceClient(blobConnectionString));
      options.LoginPath = "/login";
      options.LogoutPath = "/logout";
  });
+// ffmepg register
+ builder.Services.AddScoped<YouView.Services.VideoProcessor>();
 
 
 // Add services to the container.
