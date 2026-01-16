@@ -5,6 +5,7 @@ ViewData["Title"] = Model.Video.Title;
 }
 
 <style>
+   
     /* Global Page Styles */
     body {
         background-color: #F8F7F4;
@@ -132,6 +133,36 @@ ViewData["Title"] = Model.Video.Title;
         display: flex;
         gap: 15px;
     }
+    
+
+    /* The Custom Play Button Overlay (Only for Free Users) */
+    .play-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: rgba(0,0,0,0.4); 
+        cursor: pointer;
+        z-index: 200; 
+        transition: opacity 0.3s;
+    }
+
+    .play-icon-large {
+        font-size: 5rem;
+        color: white;
+        opacity: 0.9;
+        filter: drop-shadow(0 0 10px rgba(0,0,0,0.5));
+        transition: transform 0.2s;
+    }
+
+    .play-overlay:hover .play-icon-large {
+        transform: scale(1.1);
+        color: #ff0000; /* YouTube Red style */
+    }
 </style>
 
 @Html.AntiForgeryToken()
@@ -144,12 +175,22 @@ ViewData["Title"] = Model.Video.Title;
             <div class="player-card shadow-sm">
                 <div class="video-wrapper" id="video-wrapper">
 
-                    <video id="content-video" controls poster="@Model.Video.ThumbnailUrl">
+                    <video id="content-video"
+                           poster="@Model.Video.ThumbnailUrl"
+                           @(Model.IsViewerPremium ? "controls" : "")>
+
                         <source src="@Model.Video.VideoUrl" type="video/mp4">
                         Your browser does not support the video tag.
                     </video>
 
+                    @if (!Model.IsViewerPremium)
+                    {
+                    <div id="play-button-overlay" class="play-overlay">
+                        <i class="bi bi-play-circle-fill play-icon-large"></i>
+                    </div>
+
                     <div id="ad-container" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 100; pointer-events: none;"></div>
+                    }
 
                 </div>
 
@@ -284,25 +325,35 @@ ViewData["Title"] = Model.Video.Title;
     </div>
 </div>
 
+@if (!Model.IsViewerPremium)
+{
 <script src="//imasdk.googleapis.com/js/sdkloader/ima3.js"></script>
 <script>
     var videoContent = document.getElementById('content-video');
+    var playOverlay = document.getElementById('play-button-overlay');
     var adContainer = document.getElementById('ad-container');
-    var videoWrapper = document.getElementById('video-wrapper');
     var adDisplayContainer;
     var adsLoader;
     var adsManager;
 
-    document.addEventListener("DOMContentLoaded", function() {
+    // 1. Wait for the user to click our BIG Custom Play Button
+    // This fixes the "Autoplay Not Allowed" error
+    playOverlay.addEventListener('click', function() {
+        // Hide the button
+        playOverlay.style.display = 'none';
+
+        // Start the Ad Process
         initializeIMA();
     });
 
     function initializeIMA() {
-        // Create the container for the ads
         adDisplayContainer = new google.ima.AdDisplayContainer(adContainer, videoContent);
+
+        // Essential: Tell the browser this is a user-initiated action
+        adDisplayContainer.initialize();
+
         adsLoader = new google.ima.AdsLoader(adDisplayContainer);
 
-        // Listen for events
         adsLoader.addEventListener(
             google.ima.AdsManagerLoadedEvent.Type.ADS_MANAGER_LOADED,
             onAdsManagerLoaded,
@@ -313,7 +364,6 @@ ViewData["Title"] = Model.Video.Title;
             onAdError,
             false);
 
-        // Request a Google "Test" Ad
         var adsRequest = new google.ima.AdsRequest();
         adsRequest.adTagUrl = 'https://pubads.g.doubleclick.net/gampad/ads?' +
             'iu=/21775744923/external/single_ad_samples&sz=640x480&' +
@@ -328,24 +378,25 @@ ViewData["Title"] = Model.Video.Title;
 
         adsManager.addEventListener(google.ima.AdErrorEvent.Type.AD_ERROR, onAdError);
 
-        // When ad ends, resume content
+        // When Ad is done -> Show real controls and Play video
         adsManager.addEventListener(google.ima.AdEvent.Type.CONTENT_RESUME_REQUESTED, function() {
-            videoContent.play();
             videoContent.controls = true;
-            adContainer.style.pointerEvents = 'none'; // Click through to video
+            videoContent.play();
+            adContainer.style.pointerEvents = 'none';
         });
 
-        // When ad starts, pause content
+        // When Ad starts -> Ensure controls are hidden
         adsManager.addEventListener(google.ima.AdEvent.Type.CONTENT_PAUSE_REQUESTED, function() {
-            videoContent.controls = false; // Hide video controls during ad
-            adContainer.style.pointerEvents = 'auto'; // Enable clicking ad
+            videoContent.controls = false;
+            adContainer.style.pointerEvents = 'auto';
         });
 
         try {
-            // Initialize the ad
             adsManager.init(videoContent.clientWidth, videoContent.clientHeight, google.ima.ViewMode.NORMAL);
             adsManager.start();
         } catch (adError) {
+            console.log("Ad crash, playing video: " + adError);
+            videoContent.controls = true;
             videoContent.play();
         }
     }
@@ -353,16 +404,19 @@ ViewData["Title"] = Model.Video.Title;
     function onAdError(adErrorEvent) {
         console.log("Ad Error: " + adErrorEvent.getError());
         if(adsManager) adsManager.destroy();
-        videoContent.play(); // Fallback to video
+
+        // Fallback: If ad fails, play video immediately
+        videoContent.controls = true;
+        videoContent.play();
     }
 
-    // Resize ads if window changes
     window.addEventListener('resize', function() {
         if(adsManager) {
             adsManager.resize(videoContent.clientWidth, videoContent.clientHeight, google.ima.ViewMode.NORMAL);
         }
     });
 </script>
+}
 
 <script>
     async function toggleLike(isLike) {
