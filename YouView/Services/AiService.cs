@@ -1,5 +1,6 @@
 ﻿using Azure;
 using Azure.AI.OpenAI;
+using OpenAI;
 using OpenAI.Chat; 
 using OpenAI.Audio; 
 

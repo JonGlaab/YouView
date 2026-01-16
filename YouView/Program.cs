@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using YouView.Data;
 using YouView.Models;
 using Azure.Storage.Blobs;
+using YouView.Services;
 
 var builder = WebApplication.CreateBuilder(args); 
 
