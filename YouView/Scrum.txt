@@ -80,17 +80,49 @@ Elizabeth
     
     2026-01-16
     Minh
-      What did I do yesterday? 
-      What will I do today?
-      What impediments are blocking me?
+      What did I do yesterday? AI Summary
+      What will I do today? Incorporating Ads.
+      What impediments are blocking me? Researching how to do AI summary.
     
     Jonathan
-      What did I do yesterday? 
-      What will I do today?
-      What impediments are blocking me? 
+      What did I do yesterday? Watch and Like history.
+      What will I do today? Strip payment. Test some of the functionality.
+      What impediments are blocking me? Researching Strip with .NET.
     
     Elizabeth
-      What did I do yesterday? 
-      What will I do today? 
-      What impediments are blocking me?
+      What did I do yesterday? polish profile page, upload more videos
+      What will I do today? Finish MyVideo page and move to (delete video not working). Work on UI cohesiveness. Make search work.
+      What impediments are blocking me? N/A
+      
+2026-01-18
+Minh
+  What did I do yesterday? 
+  What will I do today?
+  What impediments are blocking me?
+    
+Jonathan
+  What did I do yesterday? 
+  What will I do today?
+  What impediments are blocking me? 
+    
+Elizabeth
+  What did I do yesterday? 
+  What will I do today? 
+  What impediments are blocking me?
+  
+2026-01-19
+Minh
+  What did I do yesterday? 
+  What will I do today?
+  What impediments are blocking me?
+    
+Jonathan
+  What did I do yesterday? 
+  What will I do today?
+  What impediments are blocking me? 
+    
+Elizabeth
+  What did I do yesterday? 
+  What will I do today? 
+  What impediments are blocking me?
  
