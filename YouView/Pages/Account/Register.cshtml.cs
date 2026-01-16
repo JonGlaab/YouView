@@ -14,6 +14,9 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 using YouView.Models;
+using YouView.Services;
+using MailKit.Security;
+using MailKit.Net.Smtp;
 
 namespace YouView.Pages.Account
 {
@@ -24,13 +27,14 @@ namespace YouView.Pages.Account
         private readonly IUserStore<User> _userStore;
         private readonly IUserEmailStore<User> _emailStore;
         private readonly ILogger<RegisterModel> _logger;
+        private readonly EmailService _emailService;
 
         public RegisterModel(
             UserManager<User> userManager,
             IUserStore<User> userStore,
             SignInManager<User> signInManager,
-            ILogger<RegisterModel> logger
-            //IEmailSender emailSender
+            ILogger<RegisterModel> logger,
+            EmailService emailService
             )
         {
             _userManager = userManager;
@@ -38,7 +42,7 @@ namespace YouView.Pages.Account
             _emailStore = GetEmailStore();
             _signInManager = signInManager;
             _logger = logger;
-            //_emailSender = emailSender;
+            _emailService = emailService;
         }
 
         /// <summary>
@@ -144,8 +148,12 @@ namespace YouView.Pages.Account
                          values: new { userId = userId, code = code, returnUrl = returnUrl },
                          protocol: Request.Scheme);
         
-                    // await _emailSender.SendEmailAsync(Input.Email, "Confirm your email",
-                    //     $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
+                     await _emailService.SendEmailAsync(
+                         user.Email,
+                         "Registration Successful",
+                         $"<h3>Welcome {user.UserName}!</h3><p>Your registration was successful.</p>"
+                     );
+
         
                     if (_userManager.Options.SignIn.RequireConfirmedAccount)
                     {
