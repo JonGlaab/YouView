@@ -48,5 +48,10 @@
     <AdditionalFiles Include="Pages\Account\Register.cshtml" />
     <AdditionalFiles Include="Pages\Account\RegisterConfirmation.cshtml" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="wwwroot\ffmpeg\**">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
 
 </Project>

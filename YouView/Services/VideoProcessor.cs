@@ -14,8 +14,24 @@ public class VideoProcessor
         
         string ffmpegFolder = Path.Combine(_env.WebRootPath, "ffmpeg");
 
-        // position of .exe file
+        // position of  file
         GlobalFFOptions.Configure(new FFOptions { BinaryFolder = ffmpegFolder });
+	if (!System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows))
+        {
+            try 
+            {
+                var ffmpegPath = Path.Combine(ffmpegFolder, "ffmpeg");
+                var ffprobePath = Path.Combine(ffmpegFolder, "ffprobe");
+
+                // Set permission to 777 (Read/Write/Execute for everyone)
+                File.SetUnixFileMode(ffmpegPath, UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute | UnixFileMode.GroupExecute | UnixFileMode.OtherExecute);
+                File.SetUnixFileMode(ffprobePath, UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute | UnixFileMode.GroupExecute | UnixFileMode.OtherExecute);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Linux Permission Fix Failed: {ex.Message}");
+            }
+        }
     }
 
     public async Task<TimeSpan> GetVideoDurationAsync(string filePath)
