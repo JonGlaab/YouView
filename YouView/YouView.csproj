@@ -49,7 +49,7 @@
     <AdditionalFiles Include="Pages\Account\RegisterConfirmation.cshtml" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="wwwroot\ffmpeg\**">
+    <Content Update="wwwroot\ffmpeg\**">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

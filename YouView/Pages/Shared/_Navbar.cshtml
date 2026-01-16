@@ -9,14 +9,25 @@
 
 <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom sticky-top shadow-sm">
     <div class="container-fluid">
-        
+
         <div class="d-flex align-items-center">
-            <button class="btn btn-light me-3 border-0 rounded-circle p-2" type="button" id="sidebarToggle">
-                <span class="navbar-toggler-icon"></span> 
+            <button class="btn btn-light border-0 rounded-circle p-2"
+                    type="button"
+                    id="hamburgerDropdown"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false">
+                <span class="navbar-toggler-icon"></span>
             </button>
+
+            <ul class="dropdown-menu" aria-labelledby="hamburgerDropdown" style="left: 0;">
+                <li><a class="dropdown-item" asp-page="/WatchHistory">Watch History</a></li>
+                <li><a class="dropdown-item" asp-page="/LikedVideos">Liked Videos</a></li>
+            </ul>
             
-            <a class="navbar-brand fw-bold d-flex align-items-center" asp-page="/Index" style="font-family: 'Roboto', sans-serif;">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/4/42/YouTube_icon_%282013-2017%29.png" height="25" class="me-1" alt="Logo">
+            <a class="navbar-brand fw-bold d-flex align-items-center" asp-page="/Index"
+               style="font-family: 'Roboto', sans-serif;">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/4/42/YouTube_icon_%282013-2017%29.png"
+                     height="25" class="me-1" alt="Logo">
                 <span class="d-none d-sm-inline">YouView</span>
             </a>
         </div>
@@ -24,9 +35,10 @@
         <div class="flex-grow-1 mx-4 d-none d-md-block" style="max-width: 600px;">
             <form class="d-flex" asp-page="/Search" method="get">
                 <div class="input-group">
-                    <input class="form-control rounded-start-pill border-end-0 shadow-none" type="search" name="q" placeholder="Search" aria-label="Search">
+                    <input class="form-control rounded-start-pill border-end-0 shadow-none" type="search" name="q"
+                           placeholder="Search" aria-label="Search">
                     <button class="btn btn-light border rounded-end-pill bg-light shadow-none" type="submit">
-                        🔍 
+                        🔍
                     </button>
                 </div>
             </form>
@@ -35,33 +47,49 @@
         <div class="d-flex align-items-center gap-2">
             @if (SignInManager.IsSignedIn(User))
             {
-                <a href="#" onclick="window.open('/Create', 'UploadWindow', 'width=600,height=800,scrollbars=yes'); return false;" 
-   				class="btn btn-light rounded-pill border d-flex align-items-center" title="Create Video">
-    			<span class="fs-5 me-1">+</span> <span class="d-none d-lg-inline">Create</span>
-				</a>
+                <a href="#"
+                   onclick="window.open('/Create', 'UploadWindow', 'width=600,height=800,scrollbars=yes'); return false;"
+                   class="btn btn-light rounded-pill border d-flex align-items-center" title="Create Video">
+                    <span class="fs-5 me-1">+</span> <span class="d-none d-lg-inline">Create</span>
+                </a>
 
                 <div class="dropdown">
-                    <a href="#" class="d-block link-dark text-decoration-none dropdown-toggle p-1" id="dropdownUser1" data-bs-toggle="dropdown" aria-expanded="false">
+                    <a href="#" class="d-block link-dark text-decoration-none dropdown-toggle p-1" id="dropdownUser1"
+                       data-bs-toggle="dropdown" aria-expanded="false">
                         @if (!string.IsNullOrEmpty(currentUser?.ProfilePicUrl))
                         {
-                            <img src="@currentUser.ProfilePicUrl" alt="Profile" width="32" height="32" class="rounded-circle border" style="object-fit: cover;">
+                            <img src="@currentUser.ProfilePicUrl" alt="Profile" width="32" height="32"
+                                 class="rounded-circle border" style="object-fit: cover;">
                         }
                         else
                         {
-                            <img src="https://ui-avatars.com/api/?name=@(currentUser?.UserName ?? "U")&background=random&color=fff" alt="Profile" width="32" height="32" class="rounded-circle">
+                            <img
+                                src="https://ui-avatars.com/api/?name=@(currentUser?.UserName ?? "U")&background=random&color=fff"
+                                alt="Profile" width="32" height="32" class="rounded-circle">
                         }
                     </a>
 
                     <ul class="dropdown-menu dropdown-menu-end text-small shadow" aria-labelledby="dropdownUser1">
                         <li><h6 class="dropdown-header">@currentUser?.UserName</h6></li>
+<<<<<<< Updated upstream
                         <li><hr class="dropdown-divider"></li>
+=======
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+                        <li><a class="dropdown-item" asp-page="/Profile" asp-route-id="@UserManager.GetUserId(User)">Your
+                                Channel</a></li>
+>>>>>>> Stashed changes
                         <li><a class="dropdown-item" href="/Profile/Me">Profile</a></li>
                         <li><a class="dropdown-item" asp-page="/Profile" asp-route-id="@UserManager.GetUserId(User)">Your Channel</a></li>
                         <li><a class="dropdown-item" asp-page="/Studio/Index">YouView Studio</a></li>
                         <li><a class="dropdown-item" asp-area="" asp-page="/Account/Manage/Index">Settings</a></li>
-                        <li><hr class="dropdown-divider"></li>
                         <li>
-                            <form class="form-inline" asp-area="" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Page("/", new { area = "" })">
+                            <hr class="dropdown-divider">
+                        </li>
+                        <li>
+                            <form class="form-inline" asp-area="" asp-page="/Account/Logout"
+                                  asp-route-returnUrl="@Url.Page("/", new { area = "" })">
                                 <button type="submit" class="dropdown-item text-danger">Sign out</button>
                             </form>
                         </li>
