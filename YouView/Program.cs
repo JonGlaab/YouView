@@ -28,6 +28,8 @@ builder.Services.AddDbContext<YouViewDbContext>(options =>
             errorNumbersToAdd: null
         );
     }));
+//register AI summary
+builder.Services.AddScoped<AiService>();
 
 //Register Identity
  builder.Services.AddDefaultIdentity<User>(options => {

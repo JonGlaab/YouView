@@ -17,17 +17,20 @@ namespace YouView.Pages
         private readonly YouViewDbContext _db;
         private readonly VideoProcessor _videoProcessor;
         private readonly IWebHostEnvironment _environment;
+		private readonly AiService _aiService;
 
         public Create(
             BlobServiceClient blobServiceClient, 
             YouViewDbContext db, 
             VideoProcessor videoProcessor, 
-            IWebHostEnvironment environment)
+            IWebHostEnvironment environment,
+			AiService aiService)
         {
             _blobServiceClient = blobServiceClient;
             _db = db;
             _videoProcessor = videoProcessor;
             _environment = environment;
+			_aiService = aiService;
         }
 
         [BindProperty] public IFormFile VideoFile { get; set; }
@@ -74,6 +77,28 @@ namespace YouView.Pages
                 
                 // Generate GIF
                 await _videoProcessor.GenerateGifPreviewAsync(tempVideoPath, tempPreviewPath);
+				
+				//AI services
+				string aiSummary = "Processing...";
+                string fullTranscript = "";
+                
+                // 1. Extract Audio to Temp File
+                var tempAudioPath = Path.Combine(tempFolder, $"{uniqueId}.mp3");
+                bool audioExtracted = await _videoProcessor.ExtractAudioAsync(tempVideoPath, tempAudioPath);
+
+                if (audioExtracted)
+                {
+                    fullTranscript = await _aiService.TranscribeAudioAsync(tempAudioPath);
+                    
+                    if (!string.IsNullOrEmpty(fullTranscript))
+                    {
+                        // 3. Send Transcript to OpenAI for Summary
+                        aiSummary = await _aiService.GenerateSummaryAsync(fullTranscript);
+                    }
+                    
+                    // Cleanup Audio File
+                    if (System.IO.File.Exists(tempAudioPath)) System.IO.File.Delete(tempAudioPath);
+                }
                
 
                 // Only generate a thumbnail if the user DIDN'T upload one
