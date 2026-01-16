@@ -38,7 +38,9 @@
                         <div class="author-info">
                             <img src="@(string.IsNullOrEmpty(video.User?.ProfilePicUrl) ? "https://ui-avatars.com/api/?name=" + (video.User?.UserName ?? "U") : video.User.ProfilePicUrl)" class="author-avatar" />
                             <span>@(video.User?.UserName ?? "Unknown User")</span>
-                            <span class="ms-auto">@video.CreatedAt.ToString("MMM dd")</span>
+                            <span class="ms-auto local-date" data-utc="@video.CreatedAt.ToString("o")">
+                                @video.CreatedAt.ToString("MMM dd")
+                            </span>
                         </div>
                     </a>
                 </div>
@@ -67,3 +69,16 @@
         </div>
     </div>
 </div>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const dates = document.querySelectorAll('.local-date');
+        dates.forEach(span => {
+            const utcTime = span.getAttribute('data-utc');
+            if (utcTime) {
+                const date = new Date(utcTime);
+                const options = { month: 'short', day: 'numeric' };
+                span.textContent = date.toLocaleDateString(undefined, options);
+            }
+        });
+    });
+</script>
