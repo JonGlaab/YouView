@@ -1,0 +1,38 @@
+@page
+@model YouView.Pages.WatchHistoryModel
+
+<div class="container pb-5">
+<div class="section-title">Your Watch History</div>
+<div class="row g-4">
+    @foreach (var item in Model.History)
+    {
+        var video = item.Video;
+
+        <div class="col-12 col-md-6 col-lg-4">
+            <a asp-page="/Watch" asp-route-id="@video.VideoId" class="video-card shadow-sm">
+                    
+                <div class="d-flex align-items-start mb-2">
+                    <i class="bi bi-play-circle me-2 fs-4 text-danger"></i>
+                    <div class="video-title">@video.Title</div>
+                </div>
+
+                <div class="thumbnail-container">
+                    <img src="@(video.ThumbnailUrl ?? "https://placehold.co/600x400")"
+                         class="thumbnail-img" />
+
+                    <span class="duration-badge">@video.Duration</span>
+                </div>
+
+                <div class="author-info">
+                    <img src="@(video.User?.ProfilePicUrl ?? "https://ui-avatars.com/api/?name=" + video.User?.UserName)"
+                         class="author-avatar" />
+                    <span>@video.User?.UserName</span>
+                    <span class="ms-auto">
+                        Watched @item.WatchedAt.ToString("MMM dd")
+                    </span>
+                </div>
+            </a>
+        </div>
+    }
+</div>
+</div>

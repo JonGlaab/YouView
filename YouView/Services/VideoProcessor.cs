@@ -1,6 +1,5 @@
 ﻿using FFMpegCore;
 using FFMpegCore.Enums;
-using System.Drawing;
 
 namespace YouView.Services;
 
@@ -12,11 +11,24 @@ public class VideoProcessor
     {
         _env = env;
         
-        string ffmpegFolder = Path.Combine(_env.WebRootPath, "ffmpeg");
+        
+        string root = _env.WebRootPath;
+        string ffmpegFolder = Path.Combine(root, "ffmpeg");
 
-        // position of  file
+        
+        if (!Directory.Exists(ffmpegFolder))
+        {
+            string nested = Path.Combine(root, "wwwroot", "ffmpeg");
+            if (Directory.Exists(nested))
+            {
+                ffmpegFolder = nested;
+            }
+        }
+
+        // position of file
         GlobalFFOptions.Configure(new FFOptions { BinaryFolder = ffmpegFolder });
-	if (!System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows))
+
+        if (!System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows))
         {
             try 
             {
@@ -24,8 +36,11 @@ public class VideoProcessor
                 var ffprobePath = Path.Combine(ffmpegFolder, "ffprobe");
 
                 // Set permission to 777 (Read/Write/Execute for everyone)
-                File.SetUnixFileMode(ffmpegPath, UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute | UnixFileMode.GroupExecute | UnixFileMode.OtherExecute);
-                File.SetUnixFileMode(ffprobePath, UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute | UnixFileMode.GroupExecute | UnixFileMode.OtherExecute);
+                if (File.Exists(ffmpegPath))
+                    File.SetUnixFileMode(ffmpegPath, UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute | UnixFileMode.GroupExecute | UnixFileMode.OtherExecute);
+                
+                if (File.Exists(ffprobePath))
+                    File.SetUnixFileMode(ffprobePath, UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute | UnixFileMode.GroupExecute | UnixFileMode.OtherExecute);
             }
             catch (Exception ex)
             {
@@ -69,12 +84,14 @@ public class VideoProcessor
             return false;
         }
     }
+
     // generate a thumbnail
     public async Task<bool> GenerateThumbnailAsync(string videoPath, string outputPath)
     {
         try
         {
-            await FFMpeg.SnapshotAsync(videoPath, outputPath, new Size(1280, 720), TimeSpan.FromSeconds(5));
+           
+            await FFMpeg.SnapshotAsync(videoPath, outputPath, TimeSpan.FromSeconds(5));
             return true;
         }
         catch (Exception ex)
@@ -83,6 +100,7 @@ public class VideoProcessor
             return false;
         }
     }
+
     // extract audio
     public async Task<bool> ExtractAudioAsync(string videoPath, string outputAudioPath)
     {
@@ -102,6 +120,7 @@ public class VideoProcessor
             return false;
         }
     }
+
     // generate preview( 3s)
     public async Task<bool> GenerateGifPreviewAsync(string videoPath, string outputPath)
     {
