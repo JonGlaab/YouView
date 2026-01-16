@@ -63,7 +63,6 @@ namespace YouView.Pages
             // Define GIF Path
             var tempPreviewPath = Path.Combine(tempFolder, $"{uniqueId}_preview.gif"); 
             
-
             try
             {
                 // Save Uploaded Video to Temp File
@@ -107,8 +106,7 @@ namespace YouView.Pages
                 {
                     aiSummary = "No audio track found.";
                 }
-               
-
+                
                 // Only generate a thumbnail if the user DIDN'T upload one
                 if (ThumbnailFile == null)
                 {
@@ -153,7 +151,6 @@ namespace YouView.Pages
                     previewUrl = prevBlob.Uri.ToString();
                 }
                 
-
                 //Save Metadata to Database
                 var video = new Video
                 {
