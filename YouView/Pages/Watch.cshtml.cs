@@ -47,6 +47,29 @@ namespace YouView.Pages
             }
 
             Video = video;
+            
+            if (User.Identity.IsAuthenticated)
+            {
+                var userId = _userManager.GetUserId(User);
+
+                var lastWatch = await _context.WatchHistories
+                    .Where(h => h.UserId == userId && h.VideoId == video.VideoId)
+                    .OrderByDescending(h => h.WatchedAt)
+                    .FirstOrDefaultAsync();
+
+                if (lastWatch == null || (DateTime.UtcNow - lastWatch.WatchedAt).TotalMinutes > 5)
+                {
+                    var historyEntry = new WatchHistory
+                    {
+                        UserId = userId,
+                        VideoId = video.VideoId,
+                        WatchedAt = DateTime.UtcNow
+                    };
+
+                    _context.WatchHistories.Add(historyEntry);
+                    await _context.SaveChangesAsync();
+                }
+            }
 
             // Get Like/Dislike counts
             LikeCount = await _context.LikeDislikes.CountAsync(l => l.VideoId == id && l.IsLike);
