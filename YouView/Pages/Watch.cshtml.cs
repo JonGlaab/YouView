@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 using YouView.Data;
 using YouView.Models;
 
@@ -22,6 +23,10 @@ namespace YouView.Pages
         public bool? UserLikeStatus { get; set; } // null = none, true = like, false = dislike
         public int LikeCount { get; set; }
         public int DislikeCount { get; set; }
+
+        [BindProperty]
+        [Required]
+        public string NewCommentContent { get; set; }
 
         public async Task<IActionResult> OnGetAsync(int? id)
         {
@@ -61,6 +66,34 @@ namespace YouView.Pages
             }
 
             return Page();
+        }
+
+        public async Task<IActionResult> OnPostAddCommentAsync(int id)
+        {
+            if (!User.Identity.IsAuthenticated)
+            {
+                return Challenge(); // Forces login
+            }
+
+            if (string.IsNullOrWhiteSpace(NewCommentContent))
+            {
+                return RedirectToPage(new { id });
+            }
+
+            var userId = _userManager.GetUserId(User);
+            
+            var comment = new Comment
+            {
+                VideoId = id,
+                UserId = userId,
+                Content = NewCommentContent,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _context.Comments.Add(comment);
+            await _context.SaveChangesAsync();
+
+            return RedirectToPage(new { id });
         }
 
         public async Task<IActionResult> OnPostToggleLikeAsync(int id, bool isLike)
