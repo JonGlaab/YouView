@@ -4,8 +4,13 @@ using YouView.Data;
 using YouView.Models;
 using Azure.Storage.Blobs;
 using YouView.Services;
+using Stripe;
 
 var builder = WebApplication.CreateBuilder(args); 
+
+// stripe keys
+StripeConfiguration.ApiKey =
+    builder.Configuration["Stripe:SecretKey"];
 
 var connectionString = builder.Configuration.GetConnectionString("YouViewDbConnection") 
                        ?? throw new InvalidOperationException("Connection string 'YouViewDbConnection' not found.");
