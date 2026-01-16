@@ -1,5 +1,6 @@
 ﻿using FFMpegCore;
 using FFMpegCore.Enums;
+using System.Drawing;
 
 namespace YouView.Services;
 
@@ -90,8 +91,9 @@ public class VideoProcessor
     {
         try
         {
-           
-            await FFMpeg.SnapshotAsync(videoPath, outputPath, TimeSpan.FromSeconds(5));
+            // FFMpeg.SnapshotAsync(input, output, size, captureTime)
+            // We pass null for size to keep original resolution
+            await FFMpeg.SnapshotAsync(videoPath, outputPath, null, TimeSpan.FromSeconds(5));
             return true;
         }
         catch (Exception ex)
