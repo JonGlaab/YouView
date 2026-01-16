@@ -31,3 +31,7 @@ appsettings.local.json
 appsettings.json
 
 **/launchSettings.json
+
+# Ignore Windows FFmpeg binaries (Local Machine)
+wwwroot/ffmpeg/ffmpeg.exe
+wwwroot/ffmpeg/ffprobe.exe

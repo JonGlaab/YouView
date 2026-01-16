@@ -79,25 +79,33 @@ namespace YouView.Pages
                 await _videoProcessor.GenerateGifPreviewAsync(tempVideoPath, tempPreviewPath);
 				
 				//AI services
-				string aiSummary = "Processing...";
-                string fullTranscript = "";
+                string aiSummary = "Processing...";
                 
-                // 1. Extract Audio to Temp File
+                // 1. Extract Audio from Video (using the new "Potato Quality" settings)
                 var tempAudioPath = Path.Combine(tempFolder, $"{uniqueId}.mp3");
                 bool audioExtracted = await _videoProcessor.ExtractAudioAsync(tempVideoPath, tempAudioPath);
 
                 if (audioExtracted)
                 {
-                    fullTranscript = await _aiService.TranscribeAudioAsync(tempAudioPath);
+                    // 2. Send Compressed Audio to Groq (Free & Fast)
+                    string transcript = await _aiService.TranscribeAudioAsync(tempAudioPath);
                     
-                    if (!string.IsNullOrEmpty(fullTranscript))
+                    if (!string.IsNullOrEmpty(transcript))
                     {
-                        // 3. Send Transcript to OpenAI for Summary
-                        aiSummary = await _aiService.GenerateSummaryAsync(fullTranscript);
+                        // 3. Send Transcript to OpenRouter (Llama 3.3) for Summary
+                        aiSummary = await _aiService.GenerateSummaryAsync(transcript);
                     }
-                    
+                    else 
+                    {
+                        aiSummary = "Could not transcribe audio.";
+                    }
+
                     // Cleanup Audio File
                     if (System.IO.File.Exists(tempAudioPath)) System.IO.File.Delete(tempAudioPath);
+                }
+                else
+                {
+                    aiSummary = "No audio track found.";
                 }
                
 
@@ -158,7 +166,7 @@ namespace YouView.Pages
                     PrivacyStatus = PrivacyStatus,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow,
-                    AiSummary = "",
+                    AiSummary = aiSummary,
                     PreviewUrl = previewUrl, 
                     SubtitlesUrl = ""
                 };

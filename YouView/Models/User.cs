@@ -9,6 +9,7 @@ public class User : IdentityUser
 	public string LastName {get;set;}
     public string ProfilePicUrl { get; set; }
     public string Bio { get; set;}
+    public bool IsPremium { get; set;}
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public ICollection<Video> Videos { get; set; }
     public ICollection<Playlist> Playlists { get; set; }

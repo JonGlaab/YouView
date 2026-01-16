@@ -23,6 +23,9 @@ namespace YouView.Pages
         public bool? UserLikeStatus { get; set; } // null = none, true = like, false = dislike
         public int LikeCount { get; set; }
         public int DislikeCount { get; set; }
+        
+        // NEW: Property to track if the viewer gets ads or not
+        public bool IsViewerPremium { get; set; } = false;
 
         [BindProperty]
         [Required]
@@ -48,6 +51,17 @@ namespace YouView.Pages
 
             Video = video;
             
+            // Check user premium status to decide on showing Ads
+            
+            if (User.Identity.IsAuthenticated)
+            {
+                var currentUser = await _userManager.GetUserAsync(User);
+                if (currentUser != null)
+                {
+                    IsViewerPremium = currentUser.IsPremium;
+                }
+            }
+
             if (User.Identity.IsAuthenticated)
             {
                 var userId = _userManager.GetUserId(User);

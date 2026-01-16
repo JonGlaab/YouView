@@ -108,12 +108,22 @@ public class VideoProcessor
     {
         try
         {
+            // "Potato Quality" Settings for AI:
+            // 1. Convert to MP3 (Smaller than WAV)
+            // 2. Mono Audio (1 Channel) - Cuts size in half
+            // 3. 16kHz Sample Rate - AI doesn't need high frequencies
+            // 4. 32kbps Bitrate - Extremely low, but clear enough for speech
+            
             await FFMpegArguments
                 .FromFileInput(videoPath)
                 .OutputToFile(outputAudioPath, true, options => options
-                    .WithAudioCodec(AudioCodec.Aac)
+                    .WithAudioCodec("libmp3lame")  // Use MP3
+                    .WithAudioBitrate(32)          // 32 kbps (Tiny file size)
+                    .WithAudioSamplingRate(16000)  // 16000 Hz
+                    .WithCustomArgument("-ac 1")   // Force Mono (1 Audio Channel)
                     .DisableChannel(Channel.Video)) 
                 .ProcessAsynchronously();
+            
             return true;
         }
         catch (Exception ex)

@@ -1,70 +1,112 @@
-﻿using Azure;
-using Azure.AI.OpenAI;
-using OpenAI;
-using OpenAI.Chat; 
-using OpenAI.Audio; 
+﻿using System.Net.Http.Headers;
+using System.Text.Json;
+using System.ClientModel; // For ApiKeyCredential
+using OpenAI; // <--- Use the standard OpenAI namespace
+using OpenAI.Chat;
 
 namespace YouView.Services;
 
 public class AiService
 {
-    private readonly string _apiKey;
-    private readonly OpenAIClient _client;
+    private readonly string _groqApiKey;
+    private readonly string _openRouterApiKey;
+    private readonly string _openRouterModel;
+    
+    // CHANGED: Use the standard OpenAIClient, not AzureOpenAIClient
+    private readonly OpenAIClient _openRouterClient;
+    private readonly HttpClient _httpClient;
 
     public AiService(IConfiguration config)
     {
-        _apiKey = config["OpenAI:ApiKey"]; 
+        _groqApiKey = config["AiSettings:GroqApiKey"];
+        _openRouterApiKey = config["AiSettings:OpenRouterApiKey"];
+        // Default to Llama 3.3 if not set
+        _openRouterModel = config["AiSettings:OpenRouterModel"] ?? "meta-llama/llama-3.3-70b-instruct:free"; 
         
-        if (!string.IsNullOrEmpty(_apiKey))
+        _httpClient = new HttpClient();
+
+        // Setup the "Thinking" Brain (OpenRouter)
+        if (!string.IsNullOrEmpty(_openRouterApiKey))
         {
-            _client = new OpenAIClient(_apiKey);
+            // CHANGED: Force the client to use OpenRouter's URL
+            var options = new OpenAIClientOptions 
+            { 
+                Endpoint = new Uri("https://openrouter.ai/api/v1") 
+            };
+            
+            _openRouterClient = new OpenAIClient(new ApiKeyCredential(_openRouterApiKey), options);
         }
     }
 
-    // 1. Audio -> Text (Transcription)
+    // 1. HEARING: Send Audio to Groq (Free Whisper)
+    // (This part was already working, keeping it exactly the same)
     public async Task<string> TranscribeAudioAsync(string audioPath)
     {
-        if (_client == null) return "AI Service not configured.";
+        if (string.IsNullOrEmpty(_groqApiKey)) return null;
 
         try
         {
-            var audioClient = _client.GetAudioClient("whisper-1");
+            using var request = new HttpRequestMessage(HttpMethod.Post, "https://api.groq.com/openai/v1/audio/transcriptions");
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _groqApiKey);
 
-            // Transcribe the audio file
-            AudioTranscription transcription = await audioClient.TranscribeAudioAsync(audioPath);
+            using var content = new MultipartFormDataContent();
             
-            return transcription.Text; 
+            var fileStream = File.OpenRead(audioPath);
+            var fileContent = new StreamContent(fileStream);
+            fileContent.Headers.ContentType = new MediaTypeHeaderValue("audio/mpeg");
+            content.Add(fileContent, "file", Path.GetFileName(audioPath));
+            content.Add(new StringContent("whisper-large-v3-turbo"), "model");
+
+            request.Content = content;
+
+            var response = await _httpClient.SendAsync(request);
+            var responseString = await response.Content.ReadAsStringAsync();
+
+            if (!response.IsSuccessStatusCode)
+            {
+                Console.WriteLine($"Groq Error: {responseString}");
+                return null;
+            }
+
+            using var doc = JsonDocument.Parse(responseString);
+            // Groq usually returns just { "text": "..." }
+            if (doc.RootElement.TryGetProperty("text", out var textElement))
+            {
+                return textElement.GetString();
+            }
+            return null;
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"AI Transcription Failed: {ex.Message}");
+            Console.WriteLine($"Transcription Failed: {ex.Message}");
             return null;
         }
     }
 
-    // 2. Text -> Summary
+    // 2. THINKING: Send Text to OpenRouter (Free Llama 3.3)
     public async Task<string> GenerateSummaryAsync(string transcript)
     {
-        if (_client == null || string.IsNullOrEmpty(transcript)) return "No summary available.";
+        if (_openRouterClient == null || string.IsNullOrEmpty(transcript)) return "No transcript available.";
 
         try
         {
-            var chatClient = _client.GetChatClient("gpt-4o-mini"); // Use "gpt-3.5-turbo" or "gpt-4o-mini" (Cheaper)
+            // Get the chat client for the specific model
+            var chatClient = _openRouterClient.GetChatClient(_openRouterModel);
 
             var messages = new List<ChatMessage>
             {
-                new SystemChatMessage("You are a helpful video assistant. Summarize the following video transcript in 2-3 sentences. Keep it exciting."),
+                new SystemChatMessage("You are a YouTube video expert. Read the following transcript and write a 2-sentence summary that makes people want to watch."),
                 new UserChatMessage(transcript)
             };
 
             ChatCompletion completion = await chatClient.CompleteChatAsync(messages);
-
+            
+            // Return the AI's response
             return completion.Content[0].Text;
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"AI Summary Failed: {ex.Message}");
-            return "Summary generation failed.";
+            return $"AI Summary Error: {ex.Message}";
         }
     }
 }
