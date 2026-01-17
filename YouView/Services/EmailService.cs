@@ -12,11 +12,11 @@ public class EmailService
 
     public async Task SendEmailAsync(string toEmail, string subject, string message)
     {
+        var senderName = _config["EmailSettings:SenderName"] ?? "YouView";
+        var senderEmail = _config["EmailSettings:SenderEmail"] ?? "no-reply@youview.com";
+
         var email = new MimeMessage();
-        email.From.Add(new MailboxAddress(
-            _config["EmailSettings:SenderName"],
-            _config["EmailSettings:SenderEmail"]
-        ));
+        email.From.Add(new MailboxAddress(senderName, senderEmail));
         email.To.Add(MailboxAddress.Parse(toEmail));
         email.Subject = subject;
 
@@ -28,7 +28,7 @@ public class EmailService
         using var smtp = new SmtpClient();
         await smtp.ConnectAsync(
             _config["EmailSettings:SmtpServer"],
-            int.Parse(_config["EmailSettings:Port"]),
+            int.Parse(_config["EmailSettings:Port"] ?? "587"),
             false
         );
 
