@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.Runtime.CompilerServices;
 using Microsoft.AspNetCore.Identity;
 
 namespace YouView.Models;
@@ -15,4 +16,8 @@ public class User : IdentityUser
     public ICollection<Playlist> Playlists { get; set; }
     public ICollection<Comment> Comments { get; set; }
     public ICollection<WatchHistory> WatchHistories { get; set; }
+    [InverseProperty("Creator")]
+    public ICollection<Subscription> Followers { get; set; }
+    [InverseProperty("Follower")]
+    public ICollection<Subscription> Following { get; set; }
 }

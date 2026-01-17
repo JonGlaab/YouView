@@ -18,12 +18,23 @@ namespace YouView.Data
         public DbSet<Comment> Comments { get; set; }
         public DbSet<WatchHistory> WatchHistories { get; set; }
         public DbSet<LikeDislike> LikeDislikes { get; set; }
+        
+        public DbSet<Subscription> Subscriptions { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-
-            
+            // config for subscription ( no duplicate follows)
+            modelBuilder.Entity<Subscription>()
+                .HasOne(s => s.Follower)
+                .WithMany(u => u.Following)
+                .HasForeignKey(s => s.FollowerId)
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Subscription>()
+                .HasOne(s => s.Creator)
+                .WithMany(u => u.Followers)
+                .HasForeignKey(s => s.CreatorId)
+                .OnDelete(DeleteBehavior.Restrict);
             modelBuilder.Entity<PlaylistVideo>()
                 .HasKey(pv => new { pv.PlaylistId, pv.VideoId });
             //remove playlist

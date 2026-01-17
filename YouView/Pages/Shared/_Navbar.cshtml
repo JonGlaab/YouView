@@ -24,7 +24,7 @@
                 <li><a class="dropdown-item" asp-page="/LikedVideos">Liked Videos</a></li>
             </ul>
             
-            <a class="navbar-brand fw-bold d-flex align-items-center" asp-page="/Index"
+            <a class="navbar-brand m-lg-1 fw-bold d-flex align-items-center" asp-page="/Index"
                style="font-family: 'Roboto', sans-serif;">
                 <img src="https://upload.wikimedia.org/wikipedia/commons/4/42/YouTube_icon_%282013-2017%29.png"
                      height="25" class="me-1" alt="Logo">
@@ -33,10 +33,14 @@
         </div>
 
         <div class="flex-grow-1 mx-4 d-none d-md-block" style="max-width: 600px;">
-            <form class="d-flex" asp-page="/Search" method="get">
+            <form class="d-flex" action="/Search" method="get">
                 <div class="input-group">
-                    <input class="form-control rounded-start-pill border-end-0 shadow-none" type="search" name="q"
-                           placeholder="Search" aria-label="Search">
+                    <input class="form-control rounded-start-pill border-end-0 shadow-none" 
+                           type="search" 
+                           name="q" 
+                           value="@Context.Request.Query["q"]" 
+                           placeholder="Search" 
+                           aria-label="Search">
                     <button class="btn btn-light border rounded-end-pill bg-light shadow-none" type="submit">
                         🔍
                     </button>

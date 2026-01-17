@@ -5,7 +5,6 @@ ViewData["Title"] = Model.Video.Title;
 }
 
 <style>
-   
     /* Global Page Styles */
     body {
         background-color: #F8F7F4;
@@ -30,7 +29,7 @@ ViewData["Title"] = Model.Video.Title;
         padding-top: 56.25%; /* 16:9 Aspect Ratio */
     }
 
-    /* MODIFIED: Added specific selector to ensure it plays nice with the ad overlay */
+    /* Added specific selector to ensure it plays nice with the ad overlay */
     video#content-video {
         position: absolute;
         top: 0;
@@ -133,7 +132,6 @@ ViewData["Title"] = Model.Video.Title;
         display: flex;
         gap: 15px;
     }
-    
 
     /* The Custom Play Button Overlay (Only for Free Users) */
     .play-overlay {
@@ -145,9 +143,9 @@ ViewData["Title"] = Model.Video.Title;
         display: flex;
         align-items: center;
         justify-content: center;
-        background-color: rgba(0,0,0,0.4); 
+        background-color: rgba(0,0,0,0.4); /* Dark dimming */
         cursor: pointer;
-        z-index: 200; 
+        z-index: 200; /* Above ads, above everything */
         transition: opacity 0.3s;
     }
 
@@ -188,7 +186,6 @@ ViewData["Title"] = Model.Video.Title;
                     <div id="play-button-overlay" class="play-overlay">
                         <i class="bi bi-play-circle-fill play-icon-large"></i>
                     </div>
-
                     <div id="ad-container" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 100; pointer-events: none;"></div>
                     }
 
@@ -235,8 +232,18 @@ ViewData["Title"] = Model.Video.Title;
 
                     <div>
                         <div class="fw-bold">@(Model.Video.User?.UserName ?? "Unknown User")</div>
-                        <small class="text-muted">Uploaded on @Model.Video.CreatedAt.ToString("MMM dd, yyyy")</small>
+                        <small class="text-muted" id="subCountDisplay">@Model.SubscriberCount subscribers</small>
                     </div>
+
+                    @if (User.Identity.IsAuthenticated && Model.Video.UserId != User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value)
+                    {
+                    <button id="btnSubscribe"
+                            onclick="toggleSubscribe()"
+                            class="btn btn-sm ms-3 @(Model.IsSubscribed ? "btn-secondary" : "btn-danger")"
+                            style="border-radius: 20px; font-weight: bold; padding: 5px 15px;">
+                        @(Model.IsSubscribed ? "Subscribed" : "Subscribe")
+                    </button>
+                    }
                 </div>
 
                 <div class="bg-light p-3 rounded-3 mt-3">
@@ -327,95 +334,122 @@ ViewData["Title"] = Model.Video.Title;
 
 @if (!Model.IsViewerPremium)
 {
-<script src="//imasdk.googleapis.com/js/sdkloader/ima3.js"></script>
-<script>
-    var videoContent = document.getElementById('content-video');
-    var playOverlay = document.getElementById('play-button-overlay');
-    var adContainer = document.getElementById('ad-container');
-    var adDisplayContainer;
-    var adsLoader;
-    var adsManager;
+    <script src="//imasdk.googleapis.com/js/sdkloader/ima3.js"></script>
+    <script>
+        var videoContent = document.getElementById('content-video');
+        var playOverlay = document.getElementById('play-button-overlay');
+        var adContainer = document.getElementById('ad-container');
+        var adDisplayContainer;
+        var adsLoader;
+        var adsManager;
+        var watchdogTimer;
 
-    // 1. Wait for the user to click our BIG Custom Play Button
-    // This fixes the "Autoplay Not Allowed" error
-    playOverlay.addEventListener('click', function() {
-        // Hide the button
-        playOverlay.style.display = 'none';
-
-        // Start the Ad Process
-        initializeIMA();
-    });
-
-    function initializeIMA() {
-        adDisplayContainer = new google.ima.AdDisplayContainer(adContainer, videoContent);
-
-        // Essential: Tell the browser this is a user-initiated action
-        adDisplayContainer.initialize();
-
-        adsLoader = new google.ima.AdsLoader(adDisplayContainer);
-
-        adsLoader.addEventListener(
-            google.ima.AdsManagerLoadedEvent.Type.ADS_MANAGER_LOADED,
-            onAdsManagerLoaded,
-            false);
-
-        adsLoader.addEventListener(
-            google.ima.AdErrorEvent.Type.AD_ERROR,
-            onAdError,
-            false);
-
-        var adsRequest = new google.ima.AdsRequest();
-        adsRequest.adTagUrl = 'https://pubads.g.doubleclick.net/gampad/ads?' +
-            'iu=/21775744923/external/single_ad_samples&sz=640x480&' +
-            'cust_params=sample_ct%3Dlinear&ciu_szs=300x250%2C728x90&' +
-            'gdfp_req=1&output=vast&unviewed_position_start=1&env=vp&impl=s&correlator=';
-
-        adsLoader.requestAds(adsRequest);
-    }
-
-    function onAdsManagerLoaded(adsManagerLoadedEvent) {
-        adsManager = adsManagerLoadedEvent.getAdsManager(videoContent);
-
-        adsManager.addEventListener(google.ima.AdErrorEvent.Type.AD_ERROR, onAdError);
-
-        // When Ad is done -> Show real controls and Play video
-        adsManager.addEventListener(google.ima.AdEvent.Type.CONTENT_RESUME_REQUESTED, function() {
+        // --- HELPER: FORCE PLAY VIDEO ---
+        // This function forces the real video to play and cleans up ads
+        function forceMainVideo() {
+            console.log("Force playing main video...");
+            if(watchdogTimer) clearTimeout(watchdogTimer);
+            if(adsManager) adsManager.destroy();
+            
+            playOverlay.style.display = 'none';
+            adContainer.style.display = 'none'; 
             videoContent.controls = true;
-            videoContent.play();
-            adContainer.style.pointerEvents = 'none';
+            
+            videoContent.play().catch(function(e) {
+                console.log("Play failed: " + e);
+            });
+        }
+
+        playOverlay.addEventListener('click', function() {
+            playOverlay.style.display = 'none';
+
+            // 1. SAFETY CHECK: Is Google blocked?
+            // This prevents the "ReferenceError: google is not defined" crash
+            if (typeof google === 'undefined' || !google.ima) {
+                console.log("🚫 AdBlock detected (Google missing). Skipping ad.");
+                forceMainVideo();
+                return; // STOP HERE! Do not run initializeIMA()
+            }
+
+            // 2. WATCHDOG: If ad takes longer than 5 seconds, give up.
+            watchdogTimer = setTimeout(function() {
+                console.log("⏰ Watchdog: Ad took too long. Forcing video.");
+                forceMainVideo();
+            }, 5000); 
+
+            // 3. If safe, try to start Ads
+            initializeIMA();
         });
 
-        // When Ad starts -> Ensure controls are hidden
-        adsManager.addEventListener(google.ima.AdEvent.Type.CONTENT_PAUSE_REQUESTED, function() {
-            videoContent.controls = false;
-            adContainer.style.pointerEvents = 'auto';
+        function initializeIMA() {
+            try {
+                adDisplayContainer = new google.ima.AdDisplayContainer(adContainer, videoContent);
+                adDisplayContainer.initialize();
+
+                adsLoader = new google.ima.AdsLoader(adDisplayContainer);
+
+                adsLoader.addEventListener(
+                    google.ima.AdsManagerLoadedEvent.Type.ADS_MANAGER_LOADED,
+                    onAdsManagerLoaded,
+                    false);
+
+                adsLoader.addEventListener(
+                    google.ima.AdErrorEvent.Type.AD_ERROR,
+                    onAdError,
+                    false);
+
+                var adsRequest = new google.ima.AdsRequest();
+                adsRequest.adTagUrl = 'https://pubads.g.doubleclick.net/gampad/ads?' +
+                    'iu=/21775744923/external/single_ad_samples&sz=640x480&' +
+                    'cust_params=sample_ct%3Dlinear&ciu_szs=300x250%2C728x90&' +
+                    'gdfp_req=1&output=vast&unviewed_position_start=1&env=vp&impl=s&correlator=';
+
+                adsLoader.requestAds(adsRequest);
+            } catch (e) {
+                console.log("IMA Init Error: " + e);
+                forceMainVideo();
+            }
+        }
+
+        function onAdsManagerLoaded(adsManagerLoadedEvent) {
+            // SUCCESS! Stop the watchdog timer.
+            if(watchdogTimer) clearTimeout(watchdogTimer);
+
+            adsManager = adsManagerLoadedEvent.getAdsManager(videoContent);
+
+            adsManager.addEventListener(google.ima.AdErrorEvent.Type.AD_ERROR, onAdError);
+            
+            adsManager.addEventListener(google.ima.AdEvent.Type.CONTENT_RESUME_REQUESTED, function() {
+                videoContent.controls = true; 
+                videoContent.play();
+                adContainer.style.pointerEvents = 'none';
+            });
+
+            adsManager.addEventListener(google.ima.AdEvent.Type.CONTENT_PAUSE_REQUESTED, function() {
+                videoContent.controls = false; 
+                adContainer.style.pointerEvents = 'auto';
+            });
+
+            try {
+                adsManager.init(videoContent.clientWidth, videoContent.clientHeight, google.ima.ViewMode.NORMAL);
+                adsManager.start();
+            } catch (adError) {
+                console.log("Ad Start Error: " + adError);
+                forceMainVideo();
+            }
+        }
+
+        function onAdError(adErrorEvent) {
+            if (adErrorEvent) console.log("Ad Error: " + adErrorEvent.getError());
+            forceMainVideo();
+        }
+        
+        window.addEventListener('resize', function() {
+            if(adsManager) {
+                adsManager.resize(videoContent.clientWidth, videoContent.clientHeight, google.ima.ViewMode.NORMAL);
+            }
         });
-
-        try {
-            adsManager.init(videoContent.clientWidth, videoContent.clientHeight, google.ima.ViewMode.NORMAL);
-            adsManager.start();
-        } catch (adError) {
-            console.log("Ad crash, playing video: " + adError);
-            videoContent.controls = true;
-            videoContent.play();
-        }
-    }
-
-    function onAdError(adErrorEvent) {
-        console.log("Ad Error: " + adErrorEvent.getError());
-        if(adsManager) adsManager.destroy();
-
-        // Fallback: If ad fails, play video immediately
-        videoContent.controls = true;
-        videoContent.play();
-    }
-
-    window.addEventListener('resize', function() {
-        if(adsManager) {
-            adsManager.resize(videoContent.clientWidth, videoContent.clientHeight, google.ima.ViewMode.NORMAL);
-        }
-    });
-</script>
+    </script>
 }
 
 <script>
@@ -434,16 +468,14 @@ ViewData["Title"] = Model.Video.Title;
             if (response.ok) {
                 const data = await response.json();
                 if (data.success) {
-                    // Update counts
                     document.getElementById('likeCount').innerText = data.likes;
                     document.getElementById('dislikeCount').innerText = data.dislikes;
 
-                    // Update UI state
                     const btnLike = document.getElementById('btnLike');
                     const btnDislike = document.getElementById('btnDislike');
                     const iconLike = btnLike.querySelector('i');
                     const iconDislike = btnDislike.querySelector('i');
-                    // Reset classes
+
                     btnLike.classList.remove('active');
                     btnDislike.classList.remove('active');
                     iconLike.className = "bi bi-hand-thumbs-up";
@@ -466,6 +498,52 @@ ViewData["Title"] = Model.Video.Title;
             }
         } catch (error) {
             console.error('Error:', error);
+        }
+    }
+</script>
+
+<script>
+    async function toggleSubscribe() {
+        const creatorId = "@Model.Video.UserId";
+        const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+        const btn = document.getElementById('btnSubscribe');
+        const countDisplay = document.getElementById('subCountDisplay');
+
+        try {
+            const formData = new FormData();
+            formData.append('creatorId', creatorId);
+
+            const response = await fetch('?handler=ToggleSubscribe', {
+                method: 'POST',
+                headers: { 'RequestVerificationToken': token },
+                body: formData
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success) {
+                    // Update Button UI
+                    if (data.isSubscribed) {
+                        btn.innerText = "Subscribed";
+                        btn.classList.remove("btn-danger");
+                        btn.classList.add("btn-secondary");
+                    } else {
+                        btn.innerText = "Subscribe";
+                        btn.classList.remove("btn-secondary");
+                        btn.classList.add("btn-danger");
+                    }
+                    // Update Text
+                    countDisplay.innerText = data.count + " subscribers";
+                } else {
+                    if(data.message === "Not logged in") {
+                        window.location.href = "/Identity/Account/Login";
+                    } else {
+                        alert(data.message);
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Subscribe Error:', error);
         }
     }
 </script>

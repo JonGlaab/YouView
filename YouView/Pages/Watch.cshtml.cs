@@ -23,8 +23,10 @@ namespace YouView.Pages
         public bool? UserLikeStatus { get; set; } // null = none, true = like, false = dislike
         public int LikeCount { get; set; }
         public int DislikeCount { get; set; }
+        public bool IsSubscribed { get; set; } = false;
+        public int SubscriberCount { get; set; }
         
-        // NEW: Property to track if the viewer gets ads or not
+        // Property to track if the viewer gets ads or not
         public bool IsViewerPremium { get; set; } = false;
 
         [BindProperty]
@@ -33,11 +35,13 @@ namespace YouView.Pages
 
         public async Task<IActionResult> OnGetAsync(int? id)
         {
+            // 1. Validate ID first
             if (id == null || _context.Videos == null)
             {
                 return NotFound();
             }
 
+            // 2. Fetch the Video (Must happen BEFORE accessing Video.UserId)
             var video = await _context.Videos
                 .Include(v => v.User)           // Fetch the Uploader
                 .Include(v => v.Comments)       // Fetch Comments
@@ -49,10 +53,20 @@ namespace YouView.Pages
                 return NotFound();
             }
 
+            // 3. Assign to the Property
             Video = video;
+
+            // 4. NOW it is safe to use Video.UserId for Subscriber logic
+            SubscriberCount = await _context.Subscriptions.CountAsync(s => s.CreatorId == Video.UserId);
             
-            // Check user premium status to decide on showing Ads
+            if (User.Identity.IsAuthenticated)
+            {
+                var currentUserId = _userManager.GetUserId(User);
+                IsSubscribed = await _context.Subscriptions
+                    .AnyAsync(s => s.FollowerId == currentUserId && s.CreatorId == Video.UserId);
+            }
             
+            // 5. Check Premium Status for Ads
             if (User.Identity.IsAuthenticated)
             {
                 var currentUser = await _userManager.GetUserAsync(User);
@@ -62,6 +76,7 @@ namespace YouView.Pages
                 }
             }
 
+            // 6. Handle Watch History
             if (User.Identity.IsAuthenticated)
             {
                 var userId = _userManager.GetUserId(User);
@@ -71,6 +86,7 @@ namespace YouView.Pages
                     .OrderByDescending(h => h.WatchedAt)
                     .FirstOrDefaultAsync();
 
+                // Only add history if they haven't watched it in the last 5 minutes (prevents spam)
                 if (lastWatch == null || (DateTime.UtcNow - lastWatch.WatchedAt).TotalMinutes > 5)
                 {
                     var historyEntry = new WatchHistory
@@ -85,11 +101,11 @@ namespace YouView.Pages
                 }
             }
 
-            // Get Like/Dislike counts
+            // 7. Get Like/Dislike counts
             LikeCount = await _context.LikeDislikes.CountAsync(l => l.VideoId == id && l.IsLike);
             DislikeCount = await _context.LikeDislikes.CountAsync(l => l.VideoId == id && !l.IsLike);
 
-            // Check if current user has liked/disliked
+            // 8. Check User Like Status
             if (User.Identity.IsAuthenticated)
             {
                 var userId = _userManager.GetUserId(User);
@@ -188,6 +204,44 @@ namespace YouView.Pages
                 dislikes = newDislikeCount, 
                 userStatus = newStatus 
             });
+        }
+
+        public async Task<IActionResult> OnPostToggleSubscribeAsync(string creatorId)
+        {
+            if (!User.Identity.IsAuthenticated) 
+                return new JsonResult(new { success = false, message = "Not logged in" });
+
+            var followerId = _userManager.GetUserId(User);
+
+            // Prevent subscribing to yourself
+            if (followerId == creatorId)
+                return new JsonResult(new { success = false, message = "Cannot subscribe to yourself" });
+
+            var existingSub = await _context.Subscriptions
+                .FirstOrDefaultAsync(s => s.FollowerId == followerId && s.CreatorId == creatorId);
+
+            bool isSubscribedNow;
+
+            if (existingSub != null)
+            {
+                // Unsubscribe
+                _context.Subscriptions.Remove(existingSub);
+                isSubscribedNow = false;
+            }
+            else
+            {
+                // Subscribe
+                var newSub = new Subscription { FollowerId = followerId, CreatorId = creatorId };
+                _context.Subscriptions.Add(newSub);
+                isSubscribedNow = true;
+            }
+
+            await _context.SaveChangesAsync();
+
+            // Get new count
+            var newCount = await _context.Subscriptions.CountAsync(s => s.CreatorId == creatorId);
+
+            return new JsonResult(new { success = true, isSubscribed = isSubscribedNow, count = newCount });
         }
     }
 }
