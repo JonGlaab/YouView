@@ -58,6 +58,9 @@ builder.Services.AddScoped<AiService>();
 // Add services to the container.
 builder.Services.AddRazorPages();
 
+// add email
+builder.Services.AddTransient<EmailService>();
+
 builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(options =>
 {
     options.MultipartBodyLengthLimit = 1L * 1024 * 1024 * 1024; // 1 GB
