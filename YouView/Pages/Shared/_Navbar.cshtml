@@ -7,7 +7,7 @@
     var currentUser = await UserManager.GetUserAsync(User);
 }
 
-<nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom sticky-top shadow-sm">
+<nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom fixed-top shadow-sm">
     <div class="container-fluid">
 
         <div class="d-flex align-items-center">
@@ -75,7 +75,7 @@
                         <li><hr class="dropdown-divider"></li>
                         
                         <li><a class="dropdown-item" href="/Profile/Me">Profile</a></li>
-                        <li><a class="dropdown-item" asp-page="/MyVideos">My Videos</a></li>
+                        <li><a class="dropdown-item" asp-page="/MyChannel">My Channel</a></li>
                         @* <li><a class="dropdown-item" asp-page="/Studio/Index">YouView Studio</a></li> *@
                         <li><a class="dropdown-item" asp-area="" asp-page="/Account/Manage/Index">Settings</a></li>
                         <li>

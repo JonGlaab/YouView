@@ -23,26 +23,28 @@
         font-weight: 600;
     }
 
-    .form-control, .form-select {
+    .edit-card .form-control, 
+    .edit-card .form-select {
         background-color: #2C2C2C;
         border: 1px solid #444;
         color: white;
         border-radius: 10px;
     }
 
-    .form-control:focus, .form-select:focus {
+    .edit-card .form-control:focus, 
+    .edit-card .form-select:focus {
         background-color: #333;
         color: white;
         border-color: #0d6efd;
         box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
     }
     
-    .form-control[type="file"] {
+    .edit-card .form-control[type="file"] {
         background-color: #2C2C2C;
         color: #aaa;
     }
     
-    .input-group-text {
+    .edit-card .input-group-text {
         background-color: #444;
         color: white;
         border-color: #444;
@@ -106,7 +108,7 @@
                     </div>
 
                     <div class="d-flex justify-content-between align-items-center mt-5">
-                        <a asp-page="/MyVideos" class="btn btn-outline-light px-4 rounded-pill">Cancel</a>
+                        <a asp-page="/MyChannel" class="btn btn-outline-light px-4 rounded-pill">Cancel</a>
                         <button type="submit" class="btn btn-primary px-5 rounded-pill fw-bold shadow-sm">Save Changes</button>
                     </div>
                 </form>

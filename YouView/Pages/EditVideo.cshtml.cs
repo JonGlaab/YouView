@@ -93,22 +93,41 @@ namespace YouView.Pages
 
             await _context.SaveChangesAsync();
 
-            return RedirectToPage("./MyVideos");
+            return RedirectToPage("./MyChannel");
         }
 
         public async Task<IActionResult> OnPostDeleteAsync(int id)
         {
             var userId = _userManager.GetUserId(User);
             var video = await _context.Videos
+                .Include(v => v.Comments)
+                .Include(v => v.PlaylistVideos)
+                .Include(v => v.WatchHistories)
                 .FirstOrDefaultAsync(v => v.VideoId == id && v.UserId == userId);
 
             if (video != null)
             {
+                // Remove related entities manually
+                if (video.Comments != null) _context.Comments.RemoveRange(video.Comments);
+                if (video.PlaylistVideos != null) _context.PlaylistVideos.RemoveRange(video.PlaylistVideos);
+                if (video.WatchHistories != null) _context.WatchHistories.RemoveRange(video.WatchHistories);
+                
+                // Remove Likes/Dislikes (Need to query separately as they are not in the Video navigation property in this context)
+                var likesOrDislikes = _context.LikeDislikes.Where(l => l.VideoId == id);
+                _context.LikeDislikes.RemoveRange(likesOrDislikes);
+
+                // Delete files from Azure Storage (Optional but recommended)
+                await _blobService.DeleteFileAsync(video.VideoUrl);
+                await _blobService.DeleteFileAsync(video.ThumbnailUrl);
+                if (!string.IsNullOrEmpty(video.PreviewUrl)) await _blobService.DeleteFileAsync(video.PreviewUrl);
+
+                // Remove the video itself
                 _context.Videos.Remove(video);
+                
                 await _context.SaveChangesAsync();
             }
 
-            return RedirectToPage("./MyVideos");
+            return RedirectToPage("./MyChannel");
         }
     }
 }

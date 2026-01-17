@@ -127,6 +127,26 @@ namespace YouView.Pages
 
             return new JsonResult(new { success = true, playlistId = playlist.PlaylistId });
         }
+        
+        // For the "Create Playlist" button on the Playlists tab
+        public async Task<IActionResult> OnPostCreateEmptyPlaylistAsync([FromBody] CreatePlaylistRequest request)
+        {
+            var userId = _userManager.GetUserId(User);
+            
+            var playlist = new Playlist
+            {
+                UserId = userId,
+                Name = request.Title, 
+                Description = "", 
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _context.Playlists.Add(playlist);
+            await _context.SaveChangesAsync();
+
+            // Return success so frontend can reload
+            return new JsonResult(new { success = true });
+        }
 
         public async Task<IActionResult> OnPostTogglePlaylistVideoAsync([FromBody] TogglePlaylistRequest request)
         {
@@ -157,6 +177,64 @@ namespace YouView.Pages
             await _context.SaveChangesAsync();
             return new JsonResult(new { success = true });
         }
+        
+        // New: Rename Playlist
+        public async Task<IActionResult> OnPostRenamePlaylistAsync([FromBody] RenamePlaylistRequest request)
+        {
+            var userId = _userManager.GetUserId(User);
+            var playlist = await _context.Playlists
+                .FirstOrDefaultAsync(p => p.PlaylistId == request.PlaylistId && p.UserId == userId);
+
+            if (playlist == null) return NotFound();
+
+            playlist.Name = request.NewName;
+            await _context.SaveChangesAsync();
+
+            return new JsonResult(new { success = true });
+        }
+
+        // New: Delete Playlist
+        public async Task<IActionResult> OnPostDeletePlaylistAsync([FromBody] DeletePlaylistRequest request)
+        {
+            var userId = _userManager.GetUserId(User);
+            var playlist = await _context.Playlists
+                .Include(p => p.PlaylistVideos) // Include relations to delete them first
+                .FirstOrDefaultAsync(p => p.PlaylistId == request.PlaylistId && p.UserId == userId);
+
+            if (playlist == null) return NotFound();
+
+            // Remove videos from playlist first 
+            _context.PlaylistVideos.RemoveRange(playlist.PlaylistVideos);
+            
+            // Remove playlist
+            _context.Playlists.Remove(playlist);
+            await _context.SaveChangesAsync();
+
+            return new JsonResult(new { success = true });
+        }
+
+        // Remove Video from Playlist (from the View Modal)
+        public async Task<IActionResult> OnPostRemoveVideoFromPlaylistAsync([FromBody] RemoveVideoRequest request)
+        {
+            var userId = _userManager.GetUserId(User);
+            
+            // Ensure user owns the playlist
+            var playlist = await _context.Playlists
+                .FirstOrDefaultAsync(p => p.PlaylistId == request.PlaylistId && p.UserId == userId);
+
+            if (playlist == null) return NotFound();
+
+            var link = await _context.PlaylistVideos
+                .FirstOrDefaultAsync(pv => pv.PlaylistId == request.PlaylistId && pv.VideoId == request.VideoId);
+
+            if (link != null)
+            {
+                _context.PlaylistVideos.Remove(link);
+                await _context.SaveChangesAsync();
+            }
+
+            return new JsonResult(new { success = true });
+        }
 
         public class CreatePlaylistRequest
         {
@@ -164,6 +242,23 @@ namespace YouView.Pages
         }
 
         public class TogglePlaylistRequest
+        {
+            public int PlaylistId { get; set; }
+            public int VideoId { get; set; }
+        }
+        
+        public class RenamePlaylistRequest
+        {
+            public int PlaylistId { get; set; }
+            public string NewName { get; set; }
+        }
+
+        public class DeletePlaylistRequest
+        {
+            public int PlaylistId { get; set; }
+        }
+
+        public class RemoveVideoRequest
         {
             public int PlaylistId { get; set; }
             public int VideoId { get; set; }
