@@ -96,19 +96,19 @@ Elizabeth
       
 2026-01-18
 Minh
-  What did I do yesterday? 
-  What will I do today?
-  What impediments are blocking me?
+  What did I do yesterday? Incorporating Ads.
+  What will I do today? Add functionality to search bar. Models for subscriptions.
+  What impediments are blocking me? N/A
     
 Jonathan
-  What did I do yesterday? 
-  What will I do today?
-  What impediments are blocking me? 
+  What did I do yesterday? Strip payment. Test some of the functionality.
+  What will I do today? Work on subscriptions.
+  What impediments are blocking me? N/A
     
 Elizabeth
-  What did I do yesterday? 
-  What will I do today? 
-  What impediments are blocking me?
+  What did I do yesterday? Updated MyVideo page (now called MyChannel) to have tabs for videos and playlists. Fixed Delete for videos. Added ability to update email address.
+  What will I do today? Add functionality to rename, delete or create playlists. 
+  What impediments are blocking me? N/A
   
 2026-01-19
 Minh
