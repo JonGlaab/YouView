@@ -65,6 +65,7 @@ builder.Services.AddAuthentication()
  
 // Add services to the container.
 builder.Services.AddRazorPages();
+builder.Services.AddControllers();
 
 // add email
 builder.Services.AddTransient<EmailService>();
@@ -83,8 +84,6 @@ builder.Services.Configure<IdentityOptions>(options =>
     options.User.RequireUniqueEmail = true;
 });
 
-
-
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -102,6 +101,7 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.MapControllers();
 app.MapStaticAssets();
 app.MapRazorPages()
    .WithStaticAssets();

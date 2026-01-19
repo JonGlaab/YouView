@@ -10,6 +10,10 @@ public class SubscribeModel : PageModel
         {
             Mode = "subscription",
             PaymentMethodTypes = new List<string> { "card" },
+            Metadata = new Dictionary<string, string>
+            {
+                { "userId", User.FindFirst("sub")?.Value ?? User.Identity.Name }
+            },
             LineItems = new List<SessionLineItemOptions>
             {
                 new()
@@ -24,14 +28,14 @@ public class SubscribeModel : PageModel
                         },
                         Recurring = new()
                         {
-                            Interval = "month"
+                            Interval = "year"
                         }
                     },
                     Quantity = 1
                 }
             },
-            SuccessUrl = "https://localhost:5001/StripeSuccess",
-            CancelUrl = "https://localhost:5001/StripeCancel"
+            SuccessUrl = "http://localhost:5143/StripeSuccess",
+            CancelUrl = "http://localhost:5143/StripeCancel"
         };
 
         var service = new SessionService();

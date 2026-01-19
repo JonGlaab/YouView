@@ -113,16 +113,32 @@ Elizabeth
 2026-01-19
 Minh
   What did I do yesterday? 
-  What will I do today?
+  What will I do today? multi-word search, upload as popout, not new tab
   What impediments are blocking me?
     
 Jonathan
-  What did I do yesterday? 
-  What will I do today?
+  What did I do yesterday? make stripe account and add links
+  What will I do today? finish stripe webhook and remodel main page sidebar
   What impediments are blocking me? 
     
 Elizabeth
-  What did I do yesterday? 
-  What will I do today? 
+  What did I do yesterday? cleaned up dead links
+  What will I do today? external logins with google, registration page style cleanup (urls)
   What impediments are blocking me?
+  
+  2026-01-20
+  Minh
+    What did I do yesterday? 
+    What will I do today?
+    What impediments are blocking me?
+      
+  Jonathan
+    What did I do yesterday? 
+    What will I do today?
+    What impediments are blocking me? 
+      
+  Elizabeth
+    What did I do yesterday? 
+    What will I do today? 
+    What impediments are blocking me?
  
