@@ -47,6 +47,14 @@ builder.Services.AddScoped<AiService>();
      })
      .AddEntityFrameworkStores<YouViewDbContext>();
 
+// Google Authentication
+builder.Services.AddAuthentication()
+    .AddGoogle(options =>
+    {
+        options.ClientId = builder.Configuration["Authentication:Google:ClientId"];
+        options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
+    });
+
  builder.Services.ConfigureApplicationCookie(options =>
  {
      options.LoginPath = "/login";
