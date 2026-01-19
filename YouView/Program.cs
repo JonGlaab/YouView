@@ -57,6 +57,7 @@ builder.Services.AddScoped<AiService>();
  
 // Add services to the container.
 builder.Services.AddRazorPages();
+builder.Services.AddControllers();
 
 // add email
 builder.Services.AddTransient<EmailService>();
