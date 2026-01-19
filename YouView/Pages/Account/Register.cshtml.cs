@@ -14,9 +14,6 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 using YouView.Models;
-using YouView.Services;
-using MailKit.Security;
-using MailKit.Net.Smtp;
 
 namespace YouView.Pages.Account
 {

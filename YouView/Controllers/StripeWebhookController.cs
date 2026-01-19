@@ -22,21 +22,30 @@ public class StripeWebhookController : ControllerBase
         var json = await new StreamReader(HttpContext.Request.Body).ReadToEndAsync();
         var endpointSecret = _config["Stripe:WebhookSecret"];
         
-        var stripeEvent = EventUtility.ConstructEvent(
-            json,
-            Request.Headers["Stripe-Signature"],
-            endpointSecret
-        );
+        Event stripeEvent;
+        try
+        {
+            stripeEvent = EventUtility.ConstructEvent(
+                json,
+                Request.Headers["Stripe-Signature"],
+                endpointSecret
+            );
+        }
+        catch (StripeException)
+        {
+            return BadRequest();
+        }
         
         if (stripeEvent.Type == "checkout.session.completed")
         {
             var session = stripeEvent.Data.Object as Session;
 
-            var userId = session?.ClientReferenceId;
+            var userId = session?.Metadata["userId"];
+
             if (userId != null)
             {
                 var user = await _context.Users.FindAsync(userId);
-                if (user != null)
+                if (user != null && !user.IsPremium)
                 {
                     user.IsPremium = true;
                     await _context.SaveChangesAsync();
