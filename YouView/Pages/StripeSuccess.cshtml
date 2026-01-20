@@ -1,3 +1,19 @@
 @page
-<h2>Payment successful 🎉</h2>
-<p>Your account will be upgraded shortly.</p>
+@model StripeSuccessModel
+
+<div class="text-center mt-5">
+    <h2 class="display-4">🎉 Payment Successful!</h2>
+
+    @if (!string.IsNullOrEmpty(Model.UserName))
+    {
+        <p class="lead">Thank you, @Model.UserName, for subscribing to YouView Premium.</p>
+    }
+    else
+    {
+        <p class="lead">Thank you for subscribing to YouView Premium.</p>
+    }
+
+    <p>Your account will be upgraded shortly. Enjoy your ad-free experience!</p>
+
+    <a class="btn btn-success btn-lg mt-4" asp-page="/Index">Go to Home</a>
+</div>
