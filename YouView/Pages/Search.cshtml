@@ -127,7 +127,7 @@
                 <div class="d-flex flex-column gap-3">
                     @foreach (var user in Model.CreatorResults)
                     {
-                        <a asp-page="/Profile/View" asp-route-username="@user.UserName" class="text-decoration-none text-dark">
+                        <a asp-page="/Channel" asp-route-username="@user.UserName" class="text-decoration-none text-dark">
                             <div class="d-flex align-items-center p-3 border rounded-4 creator-card bg-white shadow-sm">
                                 
                                 <div class="me-4">
