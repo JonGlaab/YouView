@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Stripe;
 using Stripe.Checkout;
 using YouView.Data;
@@ -41,14 +42,11 @@ public class StripeWebhookController : ControllerBase
             var session = stripeEvent.Data.Object as Session;
 
             var userId = session?.Metadata["userId"];
-            Console.WriteLine($"Stripe event: {stripeEvent.Type}");
-            Console.WriteLine($"Metadata userId: {userId}");
-
-
 
             if (userId != null)
             {
-                var user = await _context.Users.FindAsync(userId);
+                var user = await _context.Users
+                    .FirstOrDefaultAsync(u => u.UserName == userId);
                 if (user != null && !user.IsPremium)
                 {
                     Console.WriteLine("User upgraded to premium");
