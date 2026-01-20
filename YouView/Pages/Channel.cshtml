@@ -5,7 +5,7 @@
 }
 
 <style>
-    /* Match the off-white background from other pages */
+    
     body {
         background-color: #F8F7F4; 
     }
@@ -50,7 +50,7 @@
         overflow: hidden;
         border-radius: 15px;
         width: 100%;
-        padding-top: 56.25%; /* 16:9 Aspect Ratio */
+        padding-top: 56.25%; 
         background-color: #000;
         margin-bottom: 15px;
     }
@@ -74,7 +74,7 @@
         border-radius: 4px;
         font-size: 0.75rem;
         font-weight: bold;
-        pointer-events: none; /* Let clicks pass through */
+        pointer-events: none; 
     }
     
     .video-meta {
@@ -160,6 +160,7 @@
     .nav-tabs {
         border-bottom: 1px solid #ddd;
         margin-bottom: 30px;
+        justify-content: center; 
     }
 
     .nav-tabs .nav-link {
@@ -181,13 +182,21 @@
         border-bottom: 3px solid #0d6efd;
         background: transparent;
     }
+    
+    .btn-create-playlist {
+        background-color: #333 !important;
+        border-color: #333 !important;
+        color: white !important;
+    }
+
+    .btn-create-playlist:hover {
+        background-color: #444 !important;
+    }
 </style>
 
-<div class="container pb-5">
+<div class="container-fluid px-4 pb-5">
     
-    <div class="d-flex justify-content-between align-items-center mb-4 mt-4">
-        <h2 class="fw-bold">My Channel</h2>
-    </div>
+    <div class="section-title fw-bold mb-3">My Channel</div>
 
     <!-- Tabs -->
     <ul class="nav nav-tabs" id="channelTabs" role="tablist">
@@ -208,7 +217,7 @@
                 <div class="row g-4">
                     @foreach (var video in Model.Videos)
                     {
-                        <div class="col-12 col-md-6 col-lg-4">
+                        <div class="col-12 col-md-6 col-lg-3">
                             <div class="video-card shadow-sm">
                                 
                                 <div class="d-flex align-items-start mb-2">
@@ -269,7 +278,7 @@
         <div class="tab-pane fade" id="playlists" role="tabpanel" aria-labelledby="playlists-tab">
             
             <div class="d-flex justify-content-end mb-3">
-                <button class="btn btn-success rounded-pill" data-bs-toggle="modal" data-bs-target="#createPlaylistModal">
+                <button class="btn btn-create-playlist rounded-pill" data-bs-toggle="modal" data-bs-target="#createPlaylistModal">
                     <i class="bi bi-plus-lg me-1"></i> Create Playlist
                 </button>
             </div>
