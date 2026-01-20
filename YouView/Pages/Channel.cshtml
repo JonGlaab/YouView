@@ -186,7 +186,9 @@
 <div class="container pb-5">
     
     <div class="d-flex justify-content-between align-items-center mb-4 mt-4">
-        <h2 class="fw-bold">My Channel</h2>
+        <h2 class="fw-bold">
+            @(Model.IsOwner ? "My Channel" : Model.ChannelUser.UserName)
+        </h2>
     </div>
 
     <!-- Tabs -->
@@ -249,7 +251,7 @@
                 {
                     <div class="row mt-5">
                         <div class="col-12 text-center">
-                            <a asp-page="./MyChannel" asp-route-cursor="@Model.NextCursor" class="btn btn-dark btn-lg px-5 rounded-pill shadow">
+                            <a asp-page="./Channel" asp-route-cursor="@Model.NextCursor" class="btn btn-dark btn-lg px-5 rounded-pill shadow">
                                 Next Page &rarr;
                             </a>
                         </div>

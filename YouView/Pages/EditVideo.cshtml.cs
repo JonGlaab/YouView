@@ -93,7 +93,7 @@ namespace YouView.Pages
 
             await _context.SaveChangesAsync();
 
-            return RedirectToPage("./MyChannel");
+            return RedirectToPage("./Channel");
         }
 
         public async Task<IActionResult> OnPostDeleteAsync(int id)
@@ -127,7 +127,7 @@ namespace YouView.Pages
                 await _context.SaveChangesAsync();
             }
 
-            return RedirectToPage("./MyChannel");
+            return RedirectToPage("./Channel");
         }
     }
 }
