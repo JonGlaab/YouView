@@ -34,8 +34,8 @@ public class SubscribeModel : PageModel
                     Quantity = 1
                 }
             },
-            SuccessUrl = "http://localhost:5143/StripeSuccess",
-            CancelUrl = "http://localhost:5143/StripeCancel"
+            SuccessUrl = "http://youview.azurewebsites.net/StripeSuccess",
+            CancelUrl = "http://youview.azurewebsites.net/StripeCancel"
         };
 
         var service = new SessionService();
