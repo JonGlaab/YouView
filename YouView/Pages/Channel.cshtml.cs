@@ -8,13 +8,12 @@ using YouView.Models;
 
 namespace YouView.Pages
 {
-    [Authorize]
-    public class MyVideosModel : PageModel
+    public class ChannelModel : PageModel
     {
         private readonly YouViewDbContext _context;
         private readonly UserManager<User> _userManager;
 
-        public MyVideosModel(YouViewDbContext context, UserManager<User> userManager)
+        public ChannelModel(YouViewDbContext context, UserManager<User> userManager)
         {
             _context = context;
             _userManager = userManager;
@@ -26,16 +25,64 @@ namespace YouView.Pages
         // Pagination
         public int? NextCursor { get; set; }
         public bool HasMoreVideos { get; set; }
+        public User ChannelUser { get; set; } 
+        public bool IsOwner { get; set; }    
+        public bool IsSubscribed { get; set; } 
+        public int SubscriberCount { get; set; }
 
-        public async Task OnGetAsync(int? cursor)
+        // [New Logic] Updated OnGet to accept username
+        public async Task OnGetAsync(string? username, int? cursor)
         {
-            var userId = _userManager.GetUserId(User);
-            int pageSize = 12; // Show 12 videos per page (3 rows of 4)
+            var loggedInUserId = _userManager.GetUserId(User);
 
-            // Load Videos with Pagination
+            // 1. Determine Channel User
+            if (string.IsNullOrEmpty(username))
+            {
+                // No username = Viewing "My Channel"
+                if (loggedInUserId == null) 
+                {
+                    // [Fixed] Corrected URL to your Login page location
+                    Response.Redirect("/Account/Login");
+                    return;
+                }
+                
+                ChannelUser = await _context.Users.FindAsync(loggedInUserId);
+                IsOwner = true;
+            }
+            else
+            {
+                // Username present = Viewing someone else
+                ChannelUser = await _context.Users.FirstOrDefaultAsync(u => u.UserName == username);
+                if (ChannelUser == null) 
+                {
+                    Response.StatusCode = 404;
+                    return;
+                }
+
+                IsOwner = (loggedInUserId == ChannelUser.Id);
+            }
+
+            // 2. Fetch Stats & Subscription (Only if we are a visitor)
+            SubscriberCount = await _context.Subscriptions.CountAsync(s => s.CreatorId == ChannelUser.Id);
+
+            if (!IsOwner && loggedInUserId != null)
+            {
+                IsSubscribed = await _context.Subscriptions
+                    .AnyAsync(s => s.FollowerId == loggedInUserId && s.CreatorId == ChannelUser.Id);
+            }
+
+            // 3. Load Videos (With Privacy Filter)
+            int pageSize = 12; 
             var query = _context.Videos
-                .Where(v => v.UserId == userId)
-                .OrderByDescending(v => v.VideoId); // Use ID for cursor pagination
+                .Where(v => v.UserId == ChannelUser.Id);
+
+            // If not owner, HIDE private/unlisted videos
+            if (!IsOwner)
+            {
+                query = query.Where(v => v.PrivacyStatus == PrivacyStatus.Public);
+            }
+
+            query = query.OrderByDescending(v => v.VideoId); // Use ID for cursor pagination
 
             if (cursor.HasValue)
             {
@@ -57,17 +104,49 @@ namespace YouView.Pages
 
             Videos = fetchedVideos;
 
-            // Load Playlists (No pagination for now, usually fewer playlists than videos)
+            // 4. Load Playlists
             Playlists = await _context.Playlists
-                .Where(p => p.UserId == userId)
+                .Where(p => p.UserId == ChannelUser.Id)
                 .Include(p => p.PlaylistVideos)
                 .ThenInclude(pv => pv.Video)
                 .OrderByDescending(p => p.CreatedAt)
                 .ToListAsync();
         }
 
+        //  Subscribe Handler
+        public async Task<IActionResult> OnPostToggleSubscribeAsync(string creatorId)
+        {
+            if (!User.Identity.IsAuthenticated) return new JsonResult(new { success = false, message = "Not logged in" });
+
+            var followerId = _userManager.GetUserId(User);
+            if (followerId == creatorId) return new JsonResult(new { success = false });
+
+            var existingSub = await _context.Subscriptions
+                .FirstOrDefaultAsync(s => s.FollowerId == followerId && s.CreatorId == creatorId);
+
+            bool isSubscribedNow;
+
+            if (existingSub != null)
+            {
+                _context.Subscriptions.Remove(existingSub);
+                isSubscribedNow = false;
+            }
+            else
+            {
+                var newSub = new Subscription { FollowerId = followerId, CreatorId = creatorId };
+                _context.Subscriptions.Add(newSub);
+                isSubscribedNow = true;
+            }
+
+            await _context.SaveChangesAsync();
+            var newCount = await _context.Subscriptions.CountAsync(s => s.CreatorId == creatorId);
+
+            return new JsonResult(new { success = true, isSubscribed = isSubscribedNow, count = newCount });
+        }
+
         public async Task<IActionResult> OnGetUserPlaylistsAsync(int videoId)
         {
+            if (!User.Identity.IsAuthenticated) return Unauthorized();
             var userId = _userManager.GetUserId(User);
             
             var playlists = await _context.Playlists
@@ -85,6 +164,7 @@ namespace YouView.Pages
         
         public async Task<IActionResult> OnGetPlaylistDetailsAsync(int playlistId)
         {
+            if (!User.Identity.IsAuthenticated) return Unauthorized();
             var userId = _userManager.GetUserId(User);
             
             var playlist = await _context.Playlists
@@ -112,6 +192,7 @@ namespace YouView.Pages
 
         public async Task<IActionResult> OnPostCreatePlaylistAsync([FromBody] CreatePlaylistRequest request)
         {
+            if (!User.Identity.IsAuthenticated) return Unauthorized();
             var userId = _userManager.GetUserId(User);
             
             var playlist = new Playlist
@@ -131,6 +212,7 @@ namespace YouView.Pages
         // For the "Create Playlist" button on the Playlists tab
         public async Task<IActionResult> OnPostCreateEmptyPlaylistAsync([FromBody] CreatePlaylistRequest request)
         {
+            if (!User.Identity.IsAuthenticated) return Unauthorized();
             var userId = _userManager.GetUserId(User);
             
             var playlist = new Playlist
@@ -150,6 +232,7 @@ namespace YouView.Pages
 
         public async Task<IActionResult> OnPostTogglePlaylistVideoAsync([FromBody] TogglePlaylistRequest request)
         {
+            if (!User.Identity.IsAuthenticated) return Unauthorized();
             var userId = _userManager.GetUserId(User);
             
             var playlist = await _context.Playlists
@@ -181,6 +264,7 @@ namespace YouView.Pages
         // New: Rename Playlist
         public async Task<IActionResult> OnPostRenamePlaylistAsync([FromBody] RenamePlaylistRequest request)
         {
+            if (!User.Identity.IsAuthenticated) return Unauthorized();
             var userId = _userManager.GetUserId(User);
             var playlist = await _context.Playlists
                 .FirstOrDefaultAsync(p => p.PlaylistId == request.PlaylistId && p.UserId == userId);
@@ -196,6 +280,7 @@ namespace YouView.Pages
         // New: Delete Playlist
         public async Task<IActionResult> OnPostDeletePlaylistAsync([FromBody] DeletePlaylistRequest request)
         {
+            if (!User.Identity.IsAuthenticated) return Unauthorized();
             var userId = _userManager.GetUserId(User);
             var playlist = await _context.Playlists
                 .Include(p => p.PlaylistVideos) // Include relations to delete them first
@@ -216,6 +301,7 @@ namespace YouView.Pages
         // Remove Video from Playlist (from the View Modal)
         public async Task<IActionResult> OnPostRemoveVideoFromPlaylistAsync([FromBody] RemoveVideoRequest request)
         {
+            if (!User.Identity.IsAuthenticated) return Unauthorized();
             var userId = _userManager.GetUserId(User);
             
             // Ensure user owns the playlist

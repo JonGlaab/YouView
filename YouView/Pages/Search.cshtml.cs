@@ -16,7 +16,7 @@ namespace YouView.Pages
         }
 
         public IList<Video> VideoResults { get; set; } = new List<Video>();
-        public IList<User> CreatorResults { get; set; } = new List<User>(); // New List
+        public IList<User> CreatorResults { get; set; } = new List<User>();
         
         [BindProperty(SupportsGet = true)]
         public string Q { get; set; }
@@ -27,18 +27,36 @@ namespace YouView.Pages
             {
                 return;
             }
-
-            // 1. Search Videos (Title or Description)
-            VideoResults = await _context.Videos
+            
+            var searchTerms = Q.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            
+            var videoQuery = _context.Videos
                 .Include(v => v.User)
-                .Where(v => v.Title.ToLower().Contains(Q.ToLower()) || v.Description.ToLower().Contains(Q.ToLower()))
+                .AsQueryable();
+
+            foreach (var term in searchTerms)
+            {
+                string t = term.ToLower(); 
+                
+                videoQuery = videoQuery.Where(v => 
+                    v.Title.ToLower().Contains(t) || 
+                    v.Description.ToLower().Contains(t));
+            }
+
+            VideoResults = await videoQuery
                 .OrderByDescending(v => v.CreatedAt)
                 .ToListAsync();
+            
+            var creatorQuery = _context.Users.AsQueryable();
 
-            // 2. Search Creators (Username)
-            CreatorResults = await _context.Users
-                .Where(u => u.UserName.ToLower().Contains(Q.ToLower()))
-                .Take(20) // Limit to 20 creators to keep it clean
+            foreach (var term in searchTerms)
+            {
+                string t = term.ToLower();
+                creatorQuery = creatorQuery.Where(u => u.UserName.ToLower().Contains(t));
+            }
+
+            CreatorResults = await creatorQuery
+                .Take(20)
                 .ToListAsync();
         }
     }

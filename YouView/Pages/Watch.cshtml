@@ -222,27 +222,32 @@ ViewData["Title"] = Model.Video.Title;
                 <h2 class="fw-bold mb-3">@Model.Video.Title</h2>
 
                 <div class="uploader-badge">
-                    @if(!string.IsNullOrEmpty(Model.Video.User?.ProfilePicUrl)) {
-                    <img src="@Model.Video.User.ProfilePicUrl" style="width:40px;height:40px;border-radius:50%;" />
-                    } else {
-                    <div class="profile-placeholder">
-                        @(Model.Video.User?.UserName?.Substring(0,1).ToUpper() ?? "U")
-                    </div>
-                    }
-
+                    <a asp-page="/Channel" asp-route-username="@Model.Video.User.UserName" class="text-decoration-none">
+                        @if(!string.IsNullOrEmpty(Model.Video.User?.ProfilePicUrl)) {
+                            <img src="@Model.Video.User.ProfilePicUrl" 
+                                 alt="@Model.Video.User.UserName"
+                                 style="width:40px;height:40px;border-radius:50%; object-fit: cover;" />
+                        } else {
+                            <div class="profile-placeholder">
+                                @(Model.Video.User?.UserName?.Substring(0,1).ToUpper() ?? "U")
+                            </div>
+                        }
+                    </a>
                     <div>
-                        <div class="fw-bold">@(Model.Video.User?.UserName ?? "Unknown User")</div>
+                        <a asp-page="/Channel" asp-route-username="@Model.Video.User.UserName" class="text-decoration-none text-dark">
+                            <div class="fw-bold">@(Model.Video.User?.UserName ?? "Unknown User")</div>
+                        </a>
                         <small class="text-muted" id="subCountDisplay">@Model.SubscriberCount subscribers</small>
                     </div>
 
                     @if (User.Identity.IsAuthenticated && Model.Video.UserId != User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value)
                     {
-                    <button id="btnSubscribe"
-                            onclick="toggleSubscribe()"
-                            class="btn btn-sm ms-3 @(Model.IsSubscribed ? "btn-secondary" : "btn-danger")"
-                            style="border-radius: 20px; font-weight: bold; padding: 5px 15px;">
-                        @(Model.IsSubscribed ? "Subscribed" : "Subscribe")
-                    </button>
+                        <button id="btnSubscribe"
+                                onclick="toggleSubscribe()"
+                                class="btn btn-sm ms-3 @(Model.IsSubscribed ? "btn-secondary" : "btn-danger")"
+                                style="border-radius: 20px; font-weight: bold; padding: 5px 15px;">
+                            @(Model.IsSubscribed ? "Subscribed" : "Subscribe")
+                        </button>
                     }
                 </div>
 
@@ -271,7 +276,7 @@ ViewData["Title"] = Model.Video.Title;
                 else
                 {
                 <div class="alert alert-light border mt-3 mb-4">
-                    <a asp-area="Identity" asp-page="/Account/Login" asp-route-ReturnUrl="@Url.Page("/Watch", new { id = Model.Video.VideoId })">Log in</a> to leave a comment.
+                    <a asp-area="" asp-page="/Account/Login" asp-route-ReturnUrl="@Url.Page("/Watch", new { id = Model.Video.VideoId })">Log in</a> to leave a comment.
                 </div>
                 }
 
