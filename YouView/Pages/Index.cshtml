@@ -22,7 +22,6 @@
     }
     .shelf-item:hover { transform: translateY(-5px); }
     
-    
     .badge-fresh {
         position: absolute; top: 8px; left: 8px;
         background-color: #cc0000; color: white;
@@ -32,9 +31,16 @@
     
     .thumbnail-container { position: relative; border-radius: 12px; overflow: hidden; background: #000; padding-top: 56.25%; }
     .thumbnail-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; }
+    
     .video-title { font-weight: bold; line-height: 1.2; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; color: #0f0f0f; text-decoration: none; }
+    
     .author-info { display: flex; align-items: center; gap: 10px; font-size: 0.9rem; color: #606060; margin-top: 8px; }
     .author-avatar { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; }
+    
+    .card-link { text-decoration: none; color: inherit; }
+    .card-link:hover .video-title { color: #000; }
+    .channel-link { text-decoration: none; color: #606060; transition: color 0.2s; z-index: 10; position: relative; }
+    .channel-link:hover { color: #000; }
 </style>
 
 <div class="container-fluid px-md-5 pb-5">
@@ -57,15 +63,20 @@
                                 <img src="@(string.IsNullOrEmpty(video.ThumbnailUrl) ? "https://placehold.co/600x400/1F1F1F/white?text=No+Thumbnail" : video.ThumbnailUrl)" 
                                      class="thumbnail-img" />
                             </div>
+                        </a>
                             
-                            <div class="mt-2 px-1">
+                        <div class="mt-2 px-1">
+                            <a asp-page="/Watch" asp-route-id="@video.VideoId" class="card-link">
                                 <div class="video-title">@video.Title</div>
-                                <div class="author-info">
+                            </a>
+
+                            <div class="author-info">
+                                <a asp-page="/Channel" asp-route-username="@video.User.UserName" class="channel-link d-flex align-items-center gap-2">
                                     <img src="@(string.IsNullOrEmpty(video.User?.ProfilePicUrl) ? "https://ui-avatars.com/api/?name=" + (video.User?.UserName ?? "U") : video.User.ProfilePicUrl)" class="author-avatar" />
                                     <span>@(video.User?.UserName ?? "Unknown")</span>
-                                </div>
+                                </a>
                             </div>
-                        </a>
+                        </div>
                     </div>
                 }
             </div>
@@ -73,7 +84,7 @@
         </div>
     }
 
-    <div class="section-title">All Videos</div>
+    <div class="section-title fw-bold mb-3">All Videos</div>
 
     <div class="row g-4">
         @if (Model.RecentVideos != null && Model.RecentVideos.Any())
@@ -81,35 +92,42 @@
             @foreach (var video in Model.RecentVideos)
             {
                 <div class="col-12 col-md-6 col-lg-3">
-                    <a asp-page="/Watch" asp-route-id="@video.VideoId" class="video-card shadow-sm text-decoration-none">
+                    <div class="video-card shadow-sm h-100">
                         
-                        <div class="thumbnail-container mb-2">
-                            <img src="@(string.IsNullOrEmpty(video.ThumbnailUrl) ? "https://placehold.co/600x400/1F1F1F/white?text=No+Thumbnail" : video.ThumbnailUrl)" 
-                                 data-static="@video.ThumbnailUrl"
-                                 data-preview="@video.PreviewUrl"
-                                 class="thumbnail-img" 
-                                 alt="@video.Title"
-                                 onmouseover="if(this.dataset.preview) this.src = this.dataset.preview"
-                                 onmouseout="if(this.dataset.static) this.src = this.dataset.static" />
+                        <a asp-page="/Watch" asp-route-id="@video.VideoId" class="text-decoration-none d-block">
+                            <div class="thumbnail-container mb-2">
+                                <img src="@(string.IsNullOrEmpty(video.ThumbnailUrl) ? "https://placehold.co/600x400/1F1F1F/white?text=No+Thumbnail" : video.ThumbnailUrl)" 
+                                     data-static="@video.ThumbnailUrl"
+                                     data-preview="@video.PreviewUrl"
+                                     class="thumbnail-img" 
+                                     alt="@video.Title"
+                                     onmouseover="if(this.dataset.preview) this.src = this.dataset.preview"
+                                     onmouseout="if(this.dataset.static) this.src = this.dataset.static" />
 
-                            @if (!string.IsNullOrEmpty(video.Duration))
-                            {
-                                <span class="badge bg-dark position-absolute bottom-0 end-0 m-2 opacity-75">@video.Duration</span>
-                            }
-                        </div>
+                                @if (!string.IsNullOrEmpty(video.Duration))
+                                {
+                                    <span class="badge bg-dark position-absolute bottom-0 end-0 m-2 opacity-75">@video.Duration</span>
+                                }
+                            </div>
+                        </a>
                         
                         <div class="d-flex align-items-start mb-2 px-1">
-                            <div class="video-title">@video.Title</div>
+                            <a asp-page="/Watch" asp-route-id="@video.VideoId" class="card-link w-100">
+                                <div class="video-title">@video.Title</div>
+                            </a>
                         </div>
 
                         <div class="author-info px-1">
-                            <img src="@(string.IsNullOrEmpty(video.User?.ProfilePicUrl) ? "https://ui-avatars.com/api/?name=" + (video.User?.UserName ?? "U") : video.User.ProfilePicUrl)" class="author-avatar" />
-                            <span>@(video.User?.UserName ?? "Unknown User")</span>
+                            <a asp-page="/Channel" asp-route-username="@video.User.UserName" class="channel-link d-flex align-items-center gap-2">
+                                <img src="@(string.IsNullOrEmpty(video.User?.ProfilePicUrl) ? "https://ui-avatars.com/api/?name=" + (video.User?.UserName ?? "U") : video.User.ProfilePicUrl)" class="author-avatar" />
+                                <span>@(video.User?.UserName ?? "Unknown User")</span>
+                            </a>
+                            
                             <span class="ms-auto local-date" data-utc="@video.CreatedAt.ToString("o")">
                                 @video.CreatedAt.ToString("MMM dd")
                             </span>
                         </div>
-                    </a>
+                    </div>
                 </div>
             }
         }
