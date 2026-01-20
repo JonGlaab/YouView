@@ -1,38 +1,143 @@
 @page
 @model YouView.Pages.LikedVideos
+@{
+    ViewData["Title"] = "Liked Videos";
+}
 
-<div class="container pb-5">
-    <div class="section-title">Videos you liked</div>
+<style>
+    
+    body {
+        background-color: #F8F7F4; 
+    }
 
-    <div class="row g-4">
-        @foreach (var item in Model.Likes)
-        {
-            var video = item.Video;
+    .section-title {
+        font-weight: 800;
+        font-size: 2.5rem;
+        color: #222;
+        text-align: center;
+        margin-bottom: 30px;
+        margin-top: 20px;
+    }
 
-            <div class="col-12 col-md-6 col-lg-4">
-                <a asp-page="/Watch" asp-route-id="@video.VideoId" class="video-card shadow-sm">
-                    
-                    <div class="d-flex align-items-start mb-2">
-                        <i class="bi bi-play-circle me-2 fs-4 text-danger"></i>
-                        <div class="video-title">@video.Title</div>
-                    </div>
+    .video-card {
+        background-color: #1F1F1F; 
+        border-radius: 20px;
+        padding: 20px;
+        color: white;
+        transition: transform 0.2s;
+        height: 100%;
+        position: relative;
+        text-decoration: none; 
+        display: block;
+    }
 
-                    <div class="thumbnail-container">
-                        <img src="@(video.ThumbnailUrl ?? "https://placehold.co/600x400")"
-                             class="thumbnail-img" />
+    .video-card:hover {
+        transform: scale(1.02); 
+        cursor: pointer;
+        color: white;
+    }
 
-                        <span class="duration-badge">@video.Duration</span>
-                    </div>
+    .video-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 15px;
+        line-height: 1.4;
+        color: white;
+    }
 
-                    <div class="author-info">
-                        <img src="@(video.User?.ProfilePicUrl ?? "https://ui-avatars.com/api/?name=" + video.User?.UserName)"
-                             class="author-avatar" />
-                        <span>@video.User?.UserName</span>
-                        <span class="ms-auto">
-                        </span>
-                    </div>
-                </a>
-            </div>
-        }
-    </div>
+    .thumbnail-container {
+        position: relative;
+        overflow: hidden;
+        border-radius: 15px;
+        width: 100%;
+        padding-top: 56.25%; 
+        background-color: #000;
+        margin-bottom: 15px;
+    }
+
+    .thumbnail-img {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .duration-badge {
+        position: absolute;
+        bottom: 8px;
+        right: 8px;
+        background-color: rgba(0, 0, 0, 0.7);
+        color: white;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: bold;
+        pointer-events: none; 
+    }
+    
+    .author-info {
+        font-size: 0.85rem;
+        color: #aaa;
+        margin-top: 8px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .author-avatar {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background-color: #444;
+        object-fit: cover;
+    }
+</style>
+
+<div class="container-fluid px-md-5 pb-5">
+    <div class="section-title">Liked Videos</div>
+
+    @if (Model.Likes.Any())
+    {
+        <div class="row g-4">
+            @foreach (var item in Model.Likes)
+            {
+                var video = item.Video;
+                <div class="col-12 col-md-6 col-lg-4 col-xl-3">
+                    <a asp-page="/Watch" asp-route-id="@video.VideoId" class="video-card shadow-sm">
+                        
+                        <div class="d-flex align-items-start mb-2">
+                            <i class="bi bi-play-circle me-2 fs-4 text-danger"></i>
+                            <div class="video-title text-truncate">@video.Title</div>
+                        </div>
+
+                        <div class="thumbnail-container">
+                            <img src="@(string.IsNullOrEmpty(video.ThumbnailUrl) ? "https://placehold.co/600x400/1F1F1F/white?text=No+Thumbnail" : video.ThumbnailUrl)" 
+                                 class="thumbnail-img" 
+                                 alt="@video.Title" />
+
+                            @if (!string.IsNullOrEmpty(video.Duration))
+                            {
+                                <span class="duration-badge">@video.Duration</span>
+                            }
+                        </div>
+                        
+                        <div class="author-info">
+                            <img src="@(string.IsNullOrEmpty(video.User?.ProfilePicUrl) ? "https://ui-avatars.com/api/?name=" + (video.User?.UserName ?? "U") : video.User.ProfilePicUrl)" class="author-avatar" />
+                            <span>@(video.User?.UserName ?? "Unknown User")</span>
+                            <span class="ms-auto">Liked on @item.CreatedAt.ToString("MMM dd")</span>
+                        </div>
+                    </a>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="text-center py-5 text-muted">
+            <h4>You haven't liked any videos yet.</h4>
+            <a asp-page="/Index" class="btn btn-primary mt-3 rounded-pill px-4">Explore Videos</a>
+        </div>
+    }
 </div>

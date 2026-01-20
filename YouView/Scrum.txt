@@ -128,17 +128,49 @@ Elizabeth
   
   2026-01-20
   Minh
-    What did I do yesterday? 
-    What will I do today?
-    What impediments are blocking me?
+    What did I do yesterday? multi-word search, upload as popout, not new tab
+    What will I do today? Debug channel presentation (should say 'username' Channel instead of 'My Channel'). Website testing. 
+    What impediments are blocking me? N/A
       
   Jonathan
-    What did I do yesterday? 
-    What will I do today?
-    What impediments are blocking me? 
+    What did I do yesterday? finish stripe webhook. Decision not to remodel side panel.
+    What will I do today? Website testing and adding videos.
+    What impediments are blocking me? N/A
       
   Elizabeth
-    What did I do yesterday? 
-    What will I do today? 
-    What impediments are blocking me?
+    What did I do yesterday? external logins with google, registration page style cleanup (urls)
+    What will I do today? Updated rest of the UI to match. Website testing. 
+    What impediments are blocking me? N/A
+ 
+2026-01-21
+Minh
+  What did I do yesterday? 
+  What will I do today?  
+  What impediments are blocking me? 
+      
+Jonathan
+  What did I do yesterday? 
+  What will I do today? 
+  What impediments are blocking me? 
+      
+Elizabeth
+  What did I do yesterday? 
+  What will I do today?  
+  What impediments are blocking me?
+  
+2026-01-22
+Minh
+  What did I do yesterday? 
+  What will I do today?  
+  What impediments are blocking me? 
+      
+Jonathan
+  What did I do yesterday? 
+  What will I do today? 
+  What impediments are blocking me? 
+      
+Elizabeth
+  What did I do yesterday? 
+  What will I do today?  
+  What impediments are blocking me?
  
