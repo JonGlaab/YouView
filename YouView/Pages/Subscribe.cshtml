@@ -2,8 +2,23 @@
 @model SubscribeModel
 
 <h2>Go Premium</h2>
-<form method="post">
-    <button class="btn btn-primary btn-lg">
-        Subscribe for $4.99/month
-    </button>
-</form>
+
+@if (Model.IsPremium)
+{
+    <div class="alert alert-success">
+        <h3>Thank you, @Model.UserName!</h3>
+        <p>You are already subscribed. Enjoy an ad-free experience and all premium features!</p>
+    </div>
+}
+else
+{
+    <div class="alert alert-info">
+        <p>Subscribe to remove ads and unlock premium features for just $4.99/month.</p>
+    </div>
+
+    <form method="post">
+        <button class="btn btn-primary btn-lg">
+            Subscribe for $4.99/month
+        </button>
+    </form>
+}
