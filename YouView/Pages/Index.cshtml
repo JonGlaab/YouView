@@ -37,7 +37,7 @@
     .author-avatar { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; }
 </style>
 
-<div class="container pb-5">
+<div class="container-fluid px-md-5 pb-5">
     
     @if(Model.ShowShelf && Model.ShelfVideos.Any())
     {
@@ -80,7 +80,7 @@
         {
             @foreach (var video in Model.RecentVideos)
             {
-                <div class="col-12 col-md-6 col-lg-4">
+                <div class="col-12 col-md-6 col-lg-3">
                     <a asp-page="/Watch" asp-route-id="@video.VideoId" class="video-card shadow-sm text-decoration-none">
                         
                         <div class="thumbnail-container mb-2">

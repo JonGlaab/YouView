@@ -47,6 +47,14 @@ builder.Services.AddScoped<AiService>();
      })
      .AddEntityFrameworkStores<YouViewDbContext>();
 
+// Google Authentication
+builder.Services.AddAuthentication()
+    .AddGoogle(options =>
+    {
+        options.ClientId = builder.Configuration["Authentication:Google:ClientId"];
+        options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
+    });
+
  builder.Services.ConfigureApplicationCookie(options =>
  {
      options.LoginPath = "/login";
@@ -57,6 +65,7 @@ builder.Services.AddScoped<AiService>();
  
 // Add services to the container.
 builder.Services.AddRazorPages();
+builder.Services.AddControllers();
 
 // add email
 builder.Services.AddTransient<EmailService>();
@@ -92,6 +101,7 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.MapControllers();
 app.MapStaticAssets();
 app.MapRazorPages()
    .WithStaticAssets();
