@@ -9,17 +9,114 @@
     }
 }
 
-<h1>Manage your account</h1>
+<style>
+    /* Dark Theme for Account Management */
+    body {
+        background-color: #F8F7F4; 
+    }
 
-<div>
-    <h2>Change your account settings</h2>
-    <hr />
-    <div class="row">
+    .account-container {
+        margin-top: 30px;
+        margin-bottom: 50px;
+    }
+
+    .account-header {
+        font-weight: 700; /* Reduced from 800 */
+        font-size: 2rem; /* Explicit size */
+        color: #222;
+        margin-bottom: 10px;
+    }
+
+    .account-subheader {
+        color: #666;
+        font-weight: 400; /* Reduced from 500 */
+        font-size: 1.1rem; /* Explicit size */
+        margin-bottom: 30px;
+    }
+
+    /* Sidebar Navigation */
+    .nav-pills .nav-link {
+        color: #555;
+        font-weight: 500; /* Reduced from 600 */
+        font-size: 0.95rem; /* Slightly smaller */
+        border-radius: 10px;
+        padding: 10px 16px; /* Slightly reduced padding */
+        margin-bottom: 5px;
+        transition: all 0.2s;
+    }
+
+    .nav-pills .nav-link:hover {
+        background-color: #e9ecef;
+        color: #222;
+    }
+
+    .nav-pills .nav-link.active {
+        background-color: #0d6efd;
+        color: white;
+        box-shadow: 0 4px 6px rgba(13, 110, 253, 0.2);
+    }
+
+    /* Content Area */
+    .account-content {
+        background-color: white;
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        border: 1px solid #eee;
+    }
+    
+    /* Adjust headings inside the content area */
+    .account-content h3 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        color: #333;
+    }
+
+    /* Form Inputs */
+    .form-control {
+        border-radius: 8px; /* Slightly less rounded */
+        padding: 10px; /* Reduced padding */
+        font-size: 0.95rem; /* Standard font size */
+        border: 1px solid #ddd;
+        background-color: #fcfcfc;
+    }
+
+    .form-control:focus {
+        background-color: white;
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+    }
+
+    .form-floating > label {
+        padding-left: 12px;
+        font-size: 0.9rem; /* Smaller label text */
+    }
+    
+    /* Buttons */
+    .btn-primary {
+        border-radius: 50px;
+        padding: 8px 24px; /* Reduced padding */
+        font-size: 1rem; /* Standard font size */
+        font-weight: 600;
+        box-shadow: 0 4px 6px rgba(13, 110, 253, 0.2);
+    }
+</style>
+
+<div class="container account-container">
+    <h1 class="account-header">Manage Account</h1>
+    <h4 class="account-subheader">Update your profile and security settings</h4>
+    
+    <div class="row g-4">
         <div class="col-md-3">
-            <partial name="_ManageNav" />
+            <div class="p-3 bg-white rounded-4 shadow-sm border">
+                <partial name="_ManageNav" />
+            </div>
         </div>
         <div class="col-md-9">
-            @RenderBody()
+            <div class="account-content">
+                @RenderBody()
+            </div>
         </div>
     </div>
 </div>

@@ -7,11 +7,68 @@
     var currentUser = await UserManager.GetUserAsync(User);
 }
 
-<nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom fixed-top shadow-sm">
+<style>
+    .navbar-custom {
+        background-color: #1F1F1F !important; 
+        border-bottom: 1px solid #333 !important;
+    }
+
+    .navbar-brand span {
+        color: white !important;
+    }
+
+    .search-input {
+        background-color: #121212 !important;
+        border-color: #444 !important; 
+        color: white !important;
+        box-shadow: inset 0 1px 2px rgba(0,0,0,0.5); 
+    }
+
+    .search-input:focus {
+        border-color: #1c62b9 !important; 
+        box-shadow: 0 0 0 0.2rem rgba(28, 98, 185, 0.25) !important;
+    }
+
+    .search-input::placeholder {
+        color: #888 !important;
+    }
+
+    .search-btn {
+        background-color: #333 !important;
+        border-color: #444 !important; 
+        color: #ccc !important;
+    }
+
+    .search-btn:hover {
+        background-color: #444 !important;
+        color: white !important;
+    }
+
+    .btn-create {
+        background-color: #333 !important;
+        border-color: #333 !important;
+        color: white !important;
+    }
+
+    .btn-create:hover {
+        background-color: #444 !important;
+    }
+
+    .hamburger-btn {
+        color: white !important;
+        background-color: transparent !important;
+    }
+    
+    .hamburger-btn:hover {
+        background-color: #333 !important;
+    }
+</style>
+
+<nav class="navbar navbar-expand-lg navbar-dark navbar-custom fixed-top shadow-sm">
     <div class="container-fluid">
 
         <div class="d-flex align-items-center">
-            <button class="btn btn-light border-0 rounded-circle p-2"
+            <button class="btn hamburger-btn border-0 rounded-circle p-2 me-2"
                     type="button"
                     id="hamburgerDropdown"
                     data-bs-toggle="dropdown"
@@ -19,12 +76,12 @@
                 <span class="navbar-toggler-icon"></span>
             </button>
 
-            <ul class="dropdown-menu" aria-labelledby="hamburgerDropdown" style="left: 0;">
-                <li><a class="dropdown-item" asp-page="/WatchHistory">Watch History</a></li>
-                <li><a class="dropdown-item" asp-page="/LikedVideos">Liked Videos</a></li>
+            <ul class="dropdown-menu dropdown-menu-dark shadow" aria-labelledby="hamburgerDropdown">
+                <li><a class="dropdown-item" asp-page="/WatchHistory"><i class="bi bi-clock-history me-2"></i>Watch History</a></li>
+                <li><a class="dropdown-item" asp-page="/LikedVideos"><i class="bi bi-hand-thumbs-up me-2"></i>Liked Videos</a></li>
             </ul>
             
-            <a class="navbar-brand m-lg-1 fw-bold d-flex align-items-center" asp-page="/Index"
+            <a class="navbar-brand fw-bold d-flex align-items-center" asp-page="/Index"
                style="font-family: 'Roboto', sans-serif;">
                 <img src="https://upload.wikimedia.org/wikipedia/commons/4/42/YouTube_icon_%282013-2017%29.png"
                      height="25" class="me-1" alt="Logo">
@@ -35,14 +92,14 @@
         <div class="flex-grow-1 mx-4 d-none d-md-block" style="max-width: 600px;">
             <form class="d-flex" action="/Search" method="get">
                 <div class="input-group">
-                    <input class="form-control rounded-start-pill border-end-0 shadow-none" 
+                    <input class="form-control search-input rounded-start-pill border-end-0 shadow-none" 
                            type="search" 
                            name="q" 
                            value="@Context.Request.Query["q"]" 
                            placeholder="Search" 
                            aria-label="Search">
-                    <button class="btn btn-light border rounded-end-pill bg-light shadow-none" type="submit">
-                        🔍
+                    <button class="btn search-btn border rounded-end-pill shadow-none" type="submit">
+                        <i class="bi bi-search"></i>
                     </button>
                 </div>
             </form>
@@ -53,17 +110,17 @@
             {
                 <a href="#"
                    onclick="window.open('/Create', 'UploadWindow', 'width=600,height=800,scrollbars=yes'); return false;"
-                   class="btn btn-light rounded-pill border d-flex align-items-center" title="Create Video">
+                   class="btn btn-create rounded-pill border d-flex align-items-center" title="Create Video">
                     <span class="fs-5 me-1">+</span> <span class="d-none d-lg-inline">Create</span>
                 </a>
 
                 <div class="dropdown">
-                    <a href="#" class="d-block link-dark text-decoration-none dropdown-toggle p-1" id="dropdownUser1"
+                    <a href="#" class="d-block link-light text-decoration-none dropdown-toggle p-1" id="dropdownUser1"
                        data-bs-toggle="dropdown" aria-expanded="false">
                         @if (!string.IsNullOrEmpty(currentUser?.ProfilePicUrl))
                         {
                             <img src="@currentUser.ProfilePicUrl" alt="Profile" width="32" height="32"
-                                 class="rounded-circle border" style="object-fit: cover;">
+                                 class="rounded-circle border border-secondary" style="object-fit: cover;">
                         }
                         else
                         {
@@ -73,21 +130,21 @@
                         }
                     </a>
 
-                    <ul class="dropdown-menu dropdown-menu-end text-small shadow" aria-labelledby="dropdownUser1">
-                        <li><h6 class="dropdown-header">@currentUser?.UserName</h6></li>
+                    <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end text-small shadow" aria-labelledby="dropdownUser1">
+                        <li><h6 class="dropdown-header text-light">@currentUser?.UserName</h6></li>
                         
-                        <li><hr class="dropdown-divider"></li>
+                        <li><hr class="dropdown-divider border-secondary"></li>
                         
-                        <li><a class="dropdown-item" href="/Profile/Me">Profile</a></li>
-                        <li><a class="dropdown-item" asp-page="/MyChannel">My Channel</a></li>
-                        <li><a class="dropdown-item" asp-page="/Subscribe">Purchases and Memberships</a></li>
-                        <li>
-                            <hr class="dropdown-divider">
+                        <li><a class="dropdown-item" href="/Profile/Me"><i class="bi bi-person-circle me-2"></i>Profile</a></li>
+                        <li><a class="dropdown-item" asp-page="/MyChannel"><i class="bi bi-play-btn me-2"></i>My Channel</a></li>
+                        <li><a class="dropdown-item" asp-page="/Subscribe"><i class="bi bi-credit-card me-2"></i>Purchases</a></li>
+                       <li>
+                            <hr class="dropdown-divider border-secondary">
                         </li>
                         <li>
                             <form class="form-inline" asp-area="" asp-page="/Account/Logout"
                                   asp-route-returnUrl="@Url.Page("/", new { area = "" })">
-                                <button type="submit" class="dropdown-item text-danger">Sign out</button>
+                                <button type="submit" class="dropdown-item text-danger"><i class="bi bi-box-arrow-right me-2"></i>Sign out</button>
                             </form>
                         </li>
                     </ul>
@@ -96,11 +153,11 @@
             else
             {
                 <div class="d-flex gap-2">
-                    <a class="btn btn-outline-primary rounded-pill fw-bold px-3" asp-area="" asp-page="/Account/Login">
-                        <span class="me-1">👤</span> Sign in
+                    <a class="btn btn-outline-primary rounded-pill fw-bold px-3 d-flex align-items-center" asp-area="" asp-page="/Account/Login">
+                        <i class="bi bi-person-circle me-2"></i> Sign in
                     </a>
-                    <a class="btn btn-primary rounded-pill fw-bold px-3" asp-area="" asp-page="/Account/Register">
-                        ✍️ Register
+                    <a class="btn btn-primary rounded-pill fw-bold px-3 d-flex align-items-center" asp-area="" asp-page="/Account/Register">
+                        Register
                     </a>
                 </div>
             }

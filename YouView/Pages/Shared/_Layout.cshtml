@@ -12,6 +12,32 @@
     <style>
         body {
             padding-top: 70px; 
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        
+        main {
+            flex: 1;
+        }
+
+        .footer {
+            background-color: #1F1F1F; 
+            color: #aaa; /
+            padding: 20px 0;
+            border-top: 1px solid #333 !important; 
+            font-size: 0.9rem;
+        }
+
+        .footer a {
+            color: #ddd;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .footer a:hover {
+            color: white;
+            text-decoration: underline;
         }
     </style>
 </head>
@@ -20,15 +46,15 @@
     <partial name="_Navbar" />
 </header>
 
-<div class="container-fluid">
+<div class="container-fluid d-flex flex-column flex-grow-1">
     <main role="main" class="pb-3">
         @RenderBody()
     </main>
 </div>
 
-<footer class="border-top footer text-muted mt-5">
-    <div class="container">
-        &copy; 2026 - YouView - <a asp-area="" asp-page="/Privacy">Privacy</a>
+<footer class="footer mt-auto">
+    <div class="container text-center">
+        &copy; 2026 - <span class="fw-bold text-white">YouView</span> - <a asp-area="" asp-page="/Privacy">Privacy</a>
     </div>
 </footer>
 
