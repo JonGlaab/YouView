@@ -36,6 +36,8 @@ builder.Services.AddDbContext<YouViewDbContext>(options =>
     }));
 //register AI summary
 builder.Services.AddScoped<AiService>();
+//caching
+builder.Services.AddMemoryCache();
 
 //Register Identity
  builder.Services.AddDefaultIdentity<User>(options => {
