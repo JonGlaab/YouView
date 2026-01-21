@@ -1,0 +1,126 @@
+/* =========================================
+   1. TRENDING NOW (Light Shelf)
+   ========================================= */
+.shelf-container {
+    display: flex;
+    overflow-x: auto;
+    gap: 20px;
+    padding-bottom: 15px;
+    padding-top: 5px;
+    scroll-behavior: smooth;
+    scrollbar-width: thin;
+}
+
+.shelf-item {
+    min-width: 280px;
+    width: 280px;
+    flex-shrink: 0;
+    transition: transform 0.2s;
+}
+
+/* TARGET THE LINKS DIRECTLY TO REMOVE UNDERLINES */
+.shelf-item a,
+.shelf-item a:hover,
+.shelf-item a:focus {
+    text-decoration: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+.shelf-item .video-title {
+    color: #0f0f0f !important;
+    font-weight: bold;
+    font-size: 0.95rem;
+    margin-top: 8px;
+    display: block;
+}
+
+.shelf-item .channel-link {
+    color: #606060 !important;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+}
+
+.shelf-item .channel-link:hover {
+    color: #000 !important;
+}
+
+/* =========================================
+   2. ALL VIDEOS (Dark Card Style)
+   ========================================= */
+::deep .video-card {
+    background-color: #1F1F1F !important;
+    border-radius: 20px;
+    padding: 20px;
+    color: white !important;
+    transition: transform 0.2s;
+    height: 100%;
+    text-decoration: none !important;
+    display: block;
+    border: none !important;
+}
+
+::deep .video-card:hover {
+    transform: scale(1.02);
+    text-decoration: none !important;
+    color: white !important;
+}
+
+::deep .video-card .video-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: white !important;
+    text-decoration: none !important;
+    margin-bottom: 0;
+}
+
+::deep .video-card .channel-link {
+    text-decoration: none !important;
+    color: #aaa !important;
+}
+
+::deep .video-card .channel-link:hover {
+    color: white !important;
+}
+
+::deep .bi-play-circle {
+    color: #dc3545 !important;
+}
+
+/* =========================================
+   3. SHARED COMPONENTS (Thumbnails & Info)
+   ========================================= */
+.thumbnail-container {
+    position: relative;
+    overflow: hidden;
+    border-radius: 15px;
+    width: 100%;
+    padding-top: 56.25%;
+    background-color: #000;
+}
+
+.thumbnail-img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.author-info {
+    font-size: 0.85rem;
+    color: #aaa;
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.author-avatar {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    object-fit: cover;
+}

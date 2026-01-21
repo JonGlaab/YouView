@@ -1,48 +1,61 @@
-﻿/* Please see documentation at https://learn.microsoft.com/aspnet/core/client-side/bundling-and-minification
-for details on configuring this project to bundle and minify static web assets. */
-
-a.navbar-brand {
-  white-space: normal;
-  text-align: center;
-  word-break: break-all;
+﻿.shelf-container {
+  display: flex;
+  overflow-x: auto;
+  gap: 20px;
+  padding-bottom: 15px;
+  padding-top: 5px;
+  scroll-behavior: smooth;
 }
 
-a {
-  color: #0077cc;
+.shelf-item {
+  min-width: 280px;
+  width: 280px;
+  flex-shrink: 0;
+  transition: transform 0.2s;
 }
 
-.btn-primary {
-  color: #fff;
-  background-color: #1b6ec2;
-  border-color: #1861ac;
+.shelf-item .video-title {
+  color: #0f0f0f !important;
+  font-weight: bold;
+  font-size: 0.95rem;
+  margin-top: 8px;
+  display: block;
 }
 
-.nav-pills .nav-link.active, .nav-pills .show > .nav-link {
-  color: #fff;
-  background-color: #1b6ec2;
-  border-color: #1861ac;
+::deep .video-card {
+  background-color: #1F1F1F !important;
+  border-radius: 20px;
+  padding: 20px;
+  color: white !important;
+  transition: transform 0.2s;
+  height: 100%;
+  display: block;
 }
 
-.border-top {
-  border-top: 1px solid #e5e5e5;
-}
-.border-bottom {
-  border-bottom: 1px solid #e5e5e5;
+::deep .video-card:hover {
+  transform: scale(1.02);
 }
 
-.box-shadow {
-  box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .05);
+::deep .video-card .video-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: white !important;
+  margin-bottom: 0;
 }
 
-button.accept-policy {
-  font-size: 1rem;
-  line-height: inherit;
+::deep .bi-play-circle {
+  color: #dc3545 !important;
 }
 
-.footer {
+.badge-fresh {
   position: absolute;
-  bottom: 0;
-  width: 100%;
-  white-space: nowrap;
-  line-height: 60px;
+  top: 8px;
+  left: 8px;
+  background-color: #cc0000;
+  color: white;
+  font-size: 0.75rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: bold;
+  z-index: 2;
 }

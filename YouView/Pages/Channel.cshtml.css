@@ -1,0 +1,148 @@
+/* --- Base Page Styles --- */
+.section-title {
+    font-weight: 800;
+    font-size: 2.5rem;
+    color: #222;
+    text-align: center;
+    margin-bottom: 30px;
+    margin-top: 20px;
+}
+
+/* --- Video Card (Dark Style) --- */
+::deep .video-card {
+    background-color: #1F1F1F !important;
+    border-radius: 20px;
+    padding: 20px;
+    color: white !important;
+    transition: transform 0.2s;
+    height: 100%;
+    position: relative;
+    text-decoration: none !important;
+    display: block;
+}
+
+::deep .video-card:hover {
+    transform: scale(1.02);
+    color: white !important;
+}
+
+::deep .video-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 15px;
+    line-height: 1.4;
+    color: white !important;
+}
+
+.video-meta {
+    font-size: 0.85rem;
+    color: #aaa;
+    margin-bottom: 15px;
+}
+
+/* --- Action Buttons --- */
+.action-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+::deep .btn-action {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    color: white !important;
+    font-weight: 500;
+}
+
+::deep .btn-action:hover {
+    background-color: white !important;
+    color: #1F1F1F !important;
+}
+
+::deep .btn-action-primary {
+    background-color: #0d6efd !important;
+    border: 1px solid #0d6efd !important;
+    color: white !important;
+}
+
+::deep .btn-action-primary:hover {
+    background-color: #0b5ed7 !important;
+}
+
+/* --- Playlist Section --- */
+::deep .playlist-card {
+    background-color: #2C2C2C !important;
+    border-radius: 15px;
+    overflow: hidden;
+    color: white !important;
+    height: 100%;
+    transition: transform 0.2s;
+    cursor: pointer;
+    text-decoration: none !important;
+    display: block;
+}
+
+::deep .playlist-card:hover {
+    transform: translateY(-5px);
+}
+
+.playlist-thumbnail {
+    position: relative;
+    width: 100%;
+    padding-top: 56.25%; /* 16:9 */
+    background-color: #000;
+}
+
+.playlist-overlay {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 40%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+
+.playlist-count {
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+/* --- Tab Styles (Critical Fix) --- */
+::deep .nav-tabs {
+    border-bottom: 1px solid #ddd !important;
+    margin-bottom: 30px;
+    justify-content: center !important;
+}
+
+::deep .nav-tabs .nav-link {
+    color: #555 !important;
+    font-weight: 600;
+    border: none !important;
+    border-bottom: 3px solid transparent !important;
+    padding: 10px 20px;
+    font-size: 1.1rem;
+    background: transparent !important;
+}
+
+::deep .nav-tabs .nav-link:hover {
+    color: #222 !important;
+}
+
+::deep .nav-tabs .nav-link.active {
+    color: #0d6efd !important;
+    border-bottom: 3px solid #0d6efd !important;
+}
+
+::deep .btn-create-playlist {
+    background-color: #333 !important;
+    border-color: #333 !important;
+    color: white !important;
+}
+
+::deep .btn-create-playlist:hover {
+    background-color: #444 !important;
+}

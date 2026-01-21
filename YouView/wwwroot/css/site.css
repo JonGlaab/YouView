@@ -1,73 +1,47 @@
 html {
   font-size: 14px;
-}
-
-@media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
-}
-
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
-}
-
-html {
   position: relative;
   min-height: 100%;
 }
 
+@media (min-width: 768px) {
+  html { font-size: 16px; }
+}
+
 body {
-  margin-bottom: 60px;
+  background-color: #F8F7F4;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  margin: 0;
+  padding-top: 70px;
 }
 
-.form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
-  color: var(--bs-secondary-color);
-  text-align: end;
+a, a:hover, a:focus, a:active {
+  text-decoration: none !important;
+  color: inherit;
 }
 
-.form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
-  text-align: start;
+main {
+  flex: 1;
 }
 
-   /* Match the off-white background from your design */
- body {
-   background-color: #F8F7F4;
- }
-
-.section-title {
-  font-weight: 800;
-  font-size: 2.5rem;
-  color: #222;
-  text-align: center;
-  margin-bottom: 30px;
-  margin-top: 20px;
+.footer {
+  background-color: #1F1F1F;
+  color: #aaa;
+  padding: 20px 0;
+  border-top: 1px solid #333 !important;
+  font-size: 0.9rem;
+  width: 100%;
 }
 
-.video-card {
-  background-color: #1F1F1F; /* Dark card background */
-  border-radius: 20px;
-  padding: 20px;
+.footer a {
+  color: #ddd;
+}
+
+.footer a:hover {
   color: white;
-  transition: transform 0.2s;
-  height: 100%;
-  position: relative;
-  text-decoration: none; /* Remove underline from links */
-  display: block;
-}
-
-.video-card:hover {
-  transform: scale(1.02); /* Slight zoom on hover */
-  cursor: pointer;
-  color: white;
-}
-
-.video-title {
-  font-size: 1.1rem;
-  font-weight: 600;
-  margin-bottom: 15px;
-  line-height: 1.4;
-  color: white;
+  text-decoration: underline !important;
 }
 
 .thumbnail-container {
@@ -75,7 +49,7 @@ body {
   overflow: hidden;
   border-radius: 15px;
   width: 100%;
-  padding-top: 56.25%; /* 16:9 Aspect Ratio */
+  padding-top: 56.25%;
   background-color: #000;
 }
 
@@ -86,20 +60,6 @@ body {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: opacity 0.2s ease-in-out;
-}
-
-.duration-badge {
-  position: absolute;
-  bottom: 8px;
-  right: 8px;
-  background-color: rgba(0, 0, 0, 0.7);
-  color: white;
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 0.75rem;
-  font-weight: bold;
-  pointer-events: none;
 }
 
 .author-info {
@@ -115,6 +75,5 @@ body {
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  background-color: #444;
   object-fit: cover;
 }

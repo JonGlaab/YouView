@@ -4,47 +4,9 @@
     ViewData["Title"] = "Home";
 }
 
-<style>
-    .shelf-container {
-        display: flex;
-        overflow-x: auto;
-        gap: 20px;
-        padding-bottom: 15px; 
-        padding-top: 5px;
-        scroll-behavior: smooth;
-        scrollbar-width: thin; 
-    }
-    .shelf-item {
-        min-width: 280px;
-        width: 280px;
-        flex-shrink: 0;
-        transition: transform 0.2s;
-    }
-    .shelf-item:hover { transform: translateY(-5px); }
-    
-    .badge-fresh {
-        position: absolute; top: 8px; left: 8px;
-        background-color: #cc0000; color: white;
-        font-size: 0.75rem; padding: 2px 6px;
-        border-radius: 4px; font-weight: bold; z-index: 2;
-    }
-    
-    .thumbnail-container { position: relative; border-radius: 12px; overflow: hidden; background: #000; padding-top: 56.25%; }
-    .thumbnail-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; }
-    
-    .video-title { font-weight: bold; line-height: 1.2; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; color: #0f0f0f; text-decoration: none; }
-    
-    .author-info { display: flex; align-items: center; gap: 10px; font-size: 0.9rem; color: #606060; margin-top: 8px; }
-    .author-avatar { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; }
-    
-    .card-link { text-decoration: none; color: inherit; }
-    .card-link:hover .video-title { color: #000; }
-    .channel-link { text-decoration: none; color: #606060; transition: color 0.2s; z-index: 10; position: relative; }
-    .channel-link:hover { color: #000; }
-</style>
-
 <div class="container-fluid px-md-5 pb-5">
     
+    @* --- Trending Shelf --- *@
     @if(Model.ShowShelf && Model.ShelfVideos.Any())
     {
         <div class="mb-5 mt-3">
@@ -83,7 +45,8 @@
             <hr class="mt-4 text-secondary opacity-25" />
         </div>
     }
-
+    
+    @* --- All Videos Feed --- *@
     <div class="section-title fw-bold mb-3">All Videos</div>
 
     <div class="row g-4">
@@ -92,42 +55,35 @@
             @foreach (var video in Model.RecentVideos)
             {
                 <div class="col-12 col-md-6 col-lg-3">
-                    <div class="video-card shadow-sm h-100">
-                        
-                        <a asp-page="/Watch" asp-route-id="@video.VideoId" class="text-decoration-none d-block">
-                            <div class="thumbnail-container mb-2">
-                                <img src="@(string.IsNullOrEmpty(video.ThumbnailUrl) ? "https://placehold.co/600x400/1F1F1F/white?text=No+Thumbnail" : video.ThumbnailUrl)" 
-                                     data-static="@video.ThumbnailUrl"
-                                     data-preview="@video.PreviewUrl"
-                                     class="thumbnail-img" 
-                                     alt="@video.Title"
-                                     onmouseover="if(this.dataset.preview) this.src = this.dataset.preview"
-                                     onmouseout="if(this.dataset.static) this.src = this.dataset.static" />
-
-                                @if (!string.IsNullOrEmpty(video.Duration))
-                                {
-                                    <span class="badge bg-dark position-absolute bottom-0 end-0 m-2 opacity-75">@video.Duration</span>
-                                }
-                            </div>
-                        </a>
-                        
-                        <div class="d-flex align-items-start mb-2 px-1">
-                            <a asp-page="/Watch" asp-route-id="@video.VideoId" class="card-link w-100">
-                                <div class="video-title">@video.Title</div>
-                            </a>
+                    <a asp-page="/Watch" asp-route-id="@video.VideoId" class="video-card shadow-sm h-100">
+                        <div class="d-flex align-items-start mb-2">
+                            <i class="bi bi-play-circle me-2 fs-4 text-danger"></i>
+                            <div class="video-title text-truncate">@video.Title</div>
                         </div>
 
-                        <div class="author-info px-1">
-                            <a asp-page="/Channel" asp-route-username="@video.User.UserName" class="channel-link d-flex align-items-center gap-2">
-                                <img src="@(string.IsNullOrEmpty(video.User?.ProfilePicUrl) ? "https://ui-avatars.com/api/?name=" + (video.User?.UserName ?? "U") : video.User.ProfilePicUrl)" class="author-avatar" />
-                                <span>@(video.User?.UserName ?? "Unknown User")</span>
-                            </a>
-                            
+                        <div class="thumbnail-container mb-2">
+                            <img src="@(string.IsNullOrEmpty(video.ThumbnailUrl) ? "https://placehold.co/600x400/1F1F1F/white?text=No+Thumbnail" : video.ThumbnailUrl)" 
+                                 data-static="@video.ThumbnailUrl"
+                                 data-preview="@video.PreviewUrl"
+                                 class="thumbnail-img" 
+                                 alt="@video.Title"
+                                 onmouseover="if(this.dataset.preview) this.src = this.dataset.preview"
+                                 onmouseout="if(this.dataset.static) this.src = this.dataset.static" />
+
+                            @if (!string.IsNullOrEmpty(video.Duration))
+                            {
+                                <span class="badge bg-dark position-absolute bottom-0 end-0 m-2 opacity-75">@video.Duration</span>
+                            }
+                        </div>
+                        
+                        <div class="author-info">
+                            <img src="@(string.IsNullOrEmpty(video.User?.ProfilePicUrl) ? "https://ui-avatars.com/api/?name=" + (video.User?.UserName ?? "U") : video.User.ProfilePicUrl)" class="author-avatar" />
+                            <span>@(video.User?.UserName ?? "Unknown User")</span>
                             <span class="ms-auto local-date" data-utc="@video.CreatedAt.ToString("o")">
                                 @video.CreatedAt.ToString("MMM dd")
                             </span>
                         </div>
-                    </div>
+                    </a>
                 </div>
             }
         }
@@ -138,7 +94,8 @@
             </div>
         }
     </div>
-
+    
+    @* --- Pagination --- *@
     <div class="row mt-5">
         <div class="col-12 text-center">
             @if (Model.NextCursor.HasValue)
@@ -155,16 +112,18 @@
     </div>
 </div>
 
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-        const dates = document.querySelectorAll('.local-date');
-        dates.forEach(span => {
-            const utcTime = span.getAttribute('data-utc');
-            if (utcTime) {
-                const date = new Date(utcTime);
-                const options = { month: 'short', day: 'numeric' };
-                span.textContent = date.toLocaleDateString(undefined, options);
-            }
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const dates = document.querySelectorAll('.local-date');
+            dates.forEach(span => {
+                const utcTime = span.getAttribute('data-utc');
+                if (utcTime) {
+                    const date = new Date(utcTime);
+                    const options = { month: 'short', day: 'numeric' };
+                    span.textContent = date.toLocaleDateString(undefined, options);
+                }
+            });
         });
-    });
-</script>
+    </script>
+}
