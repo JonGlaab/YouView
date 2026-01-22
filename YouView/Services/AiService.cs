@@ -12,7 +12,6 @@ public class AiService
     private readonly string _openRouterApiKey;
     private readonly string _openRouterModel;
     
-    // CHANGED: Use the standard OpenAIClient, not AzureOpenAIClient
     private readonly OpenAIClient _openRouterClient;
     private readonly HttpClient _httpClient;
 
@@ -28,7 +27,6 @@ public class AiService
         // Setup the "Thinking" Brain (OpenRouter)
         if (!string.IsNullOrEmpty(_openRouterApiKey))
         {
-            // CHANGED: Force the client to use OpenRouter's URL
             var options = new OpenAIClientOptions 
             { 
                 Endpoint = new Uri("https://openrouter.ai/api/v1") 
@@ -39,7 +37,6 @@ public class AiService
     }
 
     // 1. HEARING: Send Audio to Groq (Free Whisper)
-    // (This part was already working, keeping it exactly the same)
     public async Task<string> TranscribeAudioAsync(string audioPath)
     {
         if (string.IsNullOrEmpty(_groqApiKey)) return null;
@@ -69,7 +66,6 @@ public class AiService
             }
 
             using var doc = JsonDocument.Parse(responseString);
-            // Groq usually returns just { "text": "..." }
             if (doc.RootElement.TryGetProperty("text", out var textElement))
             {
                 return textElement.GetString();
@@ -98,7 +94,6 @@ public class AiService
                 new SystemChatMessage("You are a YouTube video expert. Read the following transcript and write a 2-sentence summary that makes people want to watch."),
                 new UserChatMessage(transcript)
             };
-
             ChatCompletion completion = await chatClient.CompleteChatAsync(messages);
             
             // Return the AI's response

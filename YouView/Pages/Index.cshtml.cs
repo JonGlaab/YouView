@@ -96,7 +96,7 @@ namespace YouView.Pages
                     }
                 }
 
-                // Fallback: "Trending Now" (CACHE THIS!)
+                // Fallback: "Trending Now" 
                 if (!hasSubscriptionContent)
                 {
                     // Check Cache for "trending_shelf"
@@ -129,7 +129,7 @@ namespace YouView.Pages
 
             if (!_cache.TryGetValue(cacheKey, out List<Video> cachedRecent))
             {
-                int pageSize = 12; // Keeping your requested limit of 12
+                int pageSize = 12; 
 
                 var query = _context.Videos
                     .Include(v => v.User)
@@ -151,7 +151,7 @@ namespace YouView.Pages
                 _cache.Set(cacheKey, cachedRecent, cacheOptions);
             }
 
-            // Process the list (Clone it so we don't modify the cache instance)
+            // Process the list 
             var videoList = new List<Video>(cachedRecent);
             int displaySize = 12;
 
