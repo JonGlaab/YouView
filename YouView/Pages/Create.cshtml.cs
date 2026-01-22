@@ -17,20 +17,20 @@ namespace YouView.Pages
         private readonly YouViewDbContext _db;
         private readonly VideoProcessor _videoProcessor;
         private readonly IWebHostEnvironment _environment;
-		private readonly AiService _aiService;
+        private readonly AiService _aiService;
 
         public Create(
             BlobServiceClient blobServiceClient, 
             YouViewDbContext db, 
             VideoProcessor videoProcessor, 
             IWebHostEnvironment environment,
-			AiService aiService)
+            AiService aiService)
         {
             _blobServiceClient = blobServiceClient;
             _db = db;
             _videoProcessor = videoProcessor;
             _environment = environment;
-			_aiService = aiService;
+            _aiService = aiService;
         }
 
         [BindProperty] public IFormFile VideoFile { get; set; }
@@ -57,71 +57,80 @@ namespace YouView.Pages
             Directory.CreateDirectory(tempFolder);
 
             var uniqueId = Guid.NewGuid().ToString();
+            
+            // 1. Raw Path (Original Upload)
             var tempVideoPath = Path.Combine(tempFolder, $"{uniqueId}_{VideoFile.FileName}");
+            
+            //  Processed Path 
+            var tempProcessedPath = Path.Combine(tempFolder, $"{uniqueId}.mp4");
+            
             var tempThumbPath = Path.Combine(tempFolder, $"{uniqueId}_thumb.jpg");
-            
-            // Define GIF Path
             var tempPreviewPath = Path.Combine(tempFolder, $"{uniqueId}_preview.gif"); 
-            
+            var tempAudioPath = Path.Combine(tempFolder, $"{uniqueId}.mp3");
+
             try
             {
-                // Save Uploaded Video to Temp File
+                //  Save Uploaded Video to Temp File
                 using (var stream = new FileStream(tempVideoPath, FileMode.Create))
                 {
                     await VideoFile.CopyToAsync(stream);
                 }
-
-                // Process Video
-                var duration = await _videoProcessor.GetVideoDurationAsync(tempVideoPath);
+                //  Convert to MP4 (Standardize Format)              
+                bool conversionSuccess = await _videoProcessor.ProcessVideoUploadAsync(tempVideoPath, tempProcessedPath);
                 
-                // Generate GIF
-                await _videoProcessor.GenerateGifPreviewAsync(tempVideoPath, tempPreviewPath);
-				
-				//AI services
+                if (!conversionSuccess)
+                {
+                    Message = "Error converting video format. Please try again.";
+                    return Page();
+                }
+
+                // Process Metadata 
+                var duration = await _videoProcessor.GetVideoDurationAsync(tempProcessedPath);
+                
+                // Generate GIF from converted file
+                await _videoProcessor.GenerateGifPreviewAsync(tempProcessedPath, tempPreviewPath);
+                
+                // AI Services
                 string aiSummary = "Processing...";
                 
-                // 1. Extract Audio from Video (using the new "Potato Quality" settings)
-                var tempAudioPath = Path.Combine(tempFolder, $"{uniqueId}.mp3");
-                bool audioExtracted = await _videoProcessor.ExtractAudioAsync(tempVideoPath, tempAudioPath);
+                // Extract Audio from converted file
+                bool audioExtracted = await _videoProcessor.ExtractAudioAsync(tempProcessedPath, tempAudioPath);
 
                 if (audioExtracted)
                 {
-                    // 2. Send Compressed Audio to Groq (Free & Fast)
                     string transcript = await _aiService.TranscribeAudioAsync(tempAudioPath);
-                    
                     if (!string.IsNullOrEmpty(transcript))
                     {
-                        // 3. Send Transcript to OpenRouter (Llama 3.3) for Summary
                         aiSummary = await _aiService.GenerateSummaryAsync(transcript);
                     }
                     else 
                     {
                         aiSummary = "Could not transcribe audio.";
                     }
-
-                    // Cleanup Audio File
-                    if (System.IO.File.Exists(tempAudioPath)) System.IO.File.Delete(tempAudioPath);
                 }
                 else
                 {
                     aiSummary = "No audio track found.";
                 }
                 
-                // Only generate a thumbnail if the user DIDN'T upload one
+                // Generate Thumbnail (if needed) from converted file
                 if (ThumbnailFile == null)
                 {
-                    await _videoProcessor.GenerateThumbnailAsync(tempVideoPath, tempThumbPath);
+                    await _videoProcessor.GenerateThumbnailAsync(tempProcessedPath, tempThumbPath);
                 }
 
-                //  Upload Video to Azure
+                //  Upload to Azure (Upload the MP4, not the raw file)
                 var vidContainer = _blobServiceClient.GetBlobContainerClient("videos");
                 await vidContainer.CreateIfNotExistsAsync(PublicAccessType.Blob);
-                var vidBlob = vidContainer.GetBlobClient($"{uniqueId}{Path.GetExtension(VideoFile.FileName)}");
                 
-                await vidBlob.UploadAsync(tempVideoPath, true);
+                // Force .mp4 extension for consistency
+                var vidBlob = vidContainer.GetBlobClient($"{uniqueId}.mp4");
+                
+                // Upload the PROCESSED file
+                await vidBlob.UploadAsync(tempProcessedPath, true);
                 var videoUrl = vidBlob.Uri.ToString();
 
-                //  Upload Thumbnail to Azure
+                // Upload Thumbnail to Azure
                 string thumbnailUrl = "";
                 var thumbContainer = _blobServiceClient.GetBlobContainerClient("thumbnails");
                 await thumbContainer.CreateIfNotExistsAsync(PublicAccessType.Blob);
@@ -151,7 +160,7 @@ namespace YouView.Pages
                     previewUrl = prevBlob.Uri.ToString();
                 }
                 
-                //Save Metadata to Database
+                // Save to Database
                 var video = new Video
                 {
                     UserId = userId,
@@ -181,11 +190,12 @@ namespace YouView.Pages
             }
             finally
             {
-                //  Cleanup
-                if (System.IO.File.Exists(tempVideoPath)) System.IO.File.Delete(tempVideoPath);
+                // Cleanup ALL temp files
+                if (System.IO.File.Exists(tempVideoPath)) System.IO.File.Delete(tempVideoPath);       // Raw
+                if (System.IO.File.Exists(tempProcessedPath)) System.IO.File.Delete(tempProcessedPath); // MP4
                 if (System.IO.File.Exists(tempThumbPath)) System.IO.File.Delete(tempThumbPath);
                 if (System.IO.File.Exists(tempPreviewPath)) System.IO.File.Delete(tempPreviewPath);
-                
+                if (System.IO.File.Exists(tempAudioPath)) System.IO.File.Delete(tempAudioPath);
             }
         }
     }

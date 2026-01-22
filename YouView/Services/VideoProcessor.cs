@@ -108,11 +108,6 @@ public class VideoProcessor
     {
         try
         {
-            // "Potato Quality" Settings for AI:
-            // 1. Convert to MP3 (Smaller than WAV)
-            // 2. Mono Audio (1 Channel) - Cuts size in half
-            // 3. 16kHz Sample Rate - AI doesn't need high frequencies
-            // 4. 32kbps Bitrate - Extremely low, but clear enough for speech
             
             await FFMpegArguments
                 .FromFileInput(videoPath)
