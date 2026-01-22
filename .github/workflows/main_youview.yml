@@ -9,7 +9,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
 
@@ -18,12 +17,9 @@ jobs:
         with:
           dotnet-version: '10.x'
 
-      - name: Build with dotnet
-        run: dotnet build --configuration Release
-
       - name: dotnet publish
-        # We change the output to a simple folder named 'publish' in your workspace
-        run: dotnet publish -c Release -o ${{ github.workspace }}/publish
+        # UPDATED LINE: Added 'YouView/' before the project name
+        run: dotnet publish YouView/YouView.csproj -c Release -o ${{ github.workspace }}/publish
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
@@ -43,7 +39,6 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: .net-app
-          # This extracts your files into a folder named 'myapp'
           path: myapp
 
       - name: Login to Azure
@@ -59,5 +54,4 @@ jobs:
         with:
           app-name: 'YouView'
           slot-name: 'Production'
-          # We tell Azure to look inside the 'myapp' folder for the files
           package: myapp
