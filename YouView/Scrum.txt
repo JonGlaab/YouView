@@ -144,19 +144,19 @@ Elizabeth
  
 2026-01-21
 Minh
-  What did I do yesterday? 
-  What will I do today?  
-  What impediments are blocking me? 
+  What did I do yesterday? Debug channel presentation    
+  What will I do today?  work on presentation
+  What impediments are blocking me? just too good at this
       
 Jonathan
-  What did I do yesterday? 
-  What will I do today? 
-  What impediments are blocking me? 
+  What did I do yesterday? website testing  
+  What will I do today? presentation and adding videos
+  What impediments are blocking me? access to my own archives
       
 Elizabeth
-  What did I do yesterday? 
-  What will I do today?  
-  What impediments are blocking me?
+  What did I do yesterday? updating ui, refactored css as much as possible
+  What will I do today?  working on presentation
+  What impediments are blocking me? css does not want refactoring 
   
 2026-01-22
 Minh
