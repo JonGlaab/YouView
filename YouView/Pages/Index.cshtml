@@ -4,9 +4,42 @@
     ViewData["Title"] = "Home";
 }
 
+<style>
+    /* Shelf Styles */
+    .shelf-container {
+        display: flex;
+        overflow-x: auto;
+        gap: 20px;
+        padding-bottom: 15px; 
+        padding-top: 5px;
+        scroll-behavior: smooth;
+        scrollbar-width: thin; 
+    }
+    .shelf-item {
+        min-width: 280px;
+        width: 280px;
+        flex-shrink: 0;
+        transition: transform 0.2s;
+    }
+    .shelf-item:hover { transform: translateY(-5px); }
+    
+    .badge-fresh {
+        position: absolute; top: 8px; left: 8px;
+        background-color: #cc0000; color: white;
+        font-size: 0.75rem; padding: 2px 6px;
+        border-radius: 4px; font-weight: bold; z-index: 2;
+    }
+    
+    .thumbnail-container { position: relative; border-radius: 12px; overflow: hidden; background: #000; padding-top: 56.25%; }
+    .thumbnail-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; }
+    
+    
+    .fade-in { animation: fadeIn 0.5s ease-in; }
+    @@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+
 <div class="container-fluid px-md-5 pb-5">
     
-    @* --- Trending Shelf --- *@
     @if(Model.ShowShelf && Model.ShelfVideos.Any())
     {
         <div class="mb-5 mt-3">
@@ -28,13 +61,14 @@
                         </a>
                             
                         <div class="mt-2 px-1">
-                            <a asp-page="/Watch" asp-route-id="@video.VideoId" class="card-link">
+                            <a asp-page="/Watch" asp-route-id="@video.VideoId" class="card-link text-decoration-none text-dark fw-bold d-block">
                                 <div class="video-title">@video.Title</div>
                             </a>
 
-                            <div class="author-info">
-                                <a asp-page="/Channel" asp-route-username="@video.User.UserName" class="channel-link d-flex align-items-center gap-2">
-                                    <img src="@(string.IsNullOrEmpty(video.User?.ProfilePicUrl) ? "https://ui-avatars.com/api/?name=" + (video.User?.UserName ?? "U") : video.User.ProfilePicUrl)" class="author-avatar" />
+                            <div class="author-info mt-2 d-flex align-items-center gap-2 small text-muted">
+                                <a asp-page="/Channel" asp-route-username="@video.User.UserName" class="channel-link text-decoration-none text-muted d-flex align-items-center gap-2">
+                                    <img src="@(string.IsNullOrEmpty(video.User?.ProfilePicUrl) ? "https://ui-avatars.com/api/?name=" + (video.User?.UserName ?? "U") : video.User.ProfilePicUrl)" 
+                                         style="width:24px;height:24px;border-radius:50%;object-fit:cover;" />
                                     <span>@(video.User?.UserName ?? "Unknown")</span>
                                 </a>
                             </div>
@@ -45,20 +79,20 @@
             <hr class="mt-4 text-secondary opacity-25" />
         </div>
     }
-    
-    @* --- All Videos Feed --- *@
+
     <div class="section-title fw-bold mb-3">All Videos</div>
 
-    <div class="row g-4">
+    <div class="row g-4" id="video-grid">
         @if (Model.RecentVideos != null && Model.RecentVideos.Any())
         {
             @foreach (var video in Model.RecentVideos)
             {
-                <div class="col-12 col-md-6 col-lg-3">
-                    <a asp-page="/Watch" asp-route-id="@video.VideoId" class="video-card shadow-sm h-100">
+                <div class="col-12 col-md-6 col-lg-3 video-item">
+                    <a asp-page="/Watch" asp-route-id="@video.VideoId" class="video-card shadow-sm h-100 d-block text-decoration-none">
+                        
                         <div class="d-flex align-items-start mb-2">
                             <i class="bi bi-play-circle me-2 fs-4 text-danger"></i>
-                            <div class="video-title text-truncate">@video.Title</div>
+                            <div class="video-title text-truncate text-white">@video.Title</div>
                         </div>
 
                         <div class="thumbnail-container mb-2">
@@ -76,8 +110,9 @@
                             }
                         </div>
                         
-                        <div class="author-info">
-                            <img src="@(string.IsNullOrEmpty(video.User?.ProfilePicUrl) ? "https://ui-avatars.com/api/?name=" + (video.User?.UserName ?? "U") : video.User.ProfilePicUrl)" class="author-avatar" />
+                        <div class="author-info d-flex align-items-center gap-2 small text-muted">
+                            <img src="@(string.IsNullOrEmpty(video.User?.ProfilePicUrl) ? "https://ui-avatars.com/api/?name=" + (video.User?.UserName ?? "U") : video.User.ProfilePicUrl)" 
+                                 style="width:24px;height:24px;border-radius:50%;object-fit:cover;" />
                             <span>@(video.User?.UserName ?? "Unknown User")</span>
                             <span class="ms-auto local-date" data-utc="@video.CreatedAt.ToString("o")">
                                 @video.CreatedAt.ToString("MMM dd")
@@ -94,36 +129,118 @@
             </div>
         }
     </div>
-    
-    @* --- Pagination --- *@
-    <div class="row mt-5">
-        <div class="col-12 text-center">
-            @if (Model.NextCursor.HasValue)
-            {
-                <a asp-page="./Index" asp-route-cursor="@Model.NextCursor" class="btn btn-dark btn-lg px-5 rounded-pill shadow">
-                    Next Page &rarr;
-                </a>
-            }
-            else if (Model.RecentVideos != null && Model.RecentVideos.Any())
-            {
-                <span class="text-muted small">You've reached the end of the internet 🎬</span>
-            }
-        </div>
+
+    <div id="infinite-scroll-trigger" class="text-center py-5 mt-4">
+        @if (Model.NextCursor.HasValue)
+        {
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        }
+        else if (Model.RecentVideos != null && Model.RecentVideos.Any())
+        {
+            <span class="text-muted small">You've reached the end of the internet 🎬</span>
+        }
     </div>
+
 </div>
 
 @section Scripts {
     <script>
         document.addEventListener("DOMContentLoaded", function() {
+           
             const dates = document.querySelectorAll('.local-date');
             dates.forEach(span => {
                 const utcTime = span.getAttribute('data-utc');
                 if (utcTime) {
                     const date = new Date(utcTime);
-                    const options = { month: 'short', day: 'numeric' };
-                    span.textContent = date.toLocaleDateString(undefined, options);
+                    span.textContent = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
                 }
             });
+
+            let nextCursor = @(Model.NextCursor.HasValue ? Model.NextCursor.Value : "null");
+            let isLoading = false;
+            const trigger = document.getElementById('infinite-scroll-trigger');
+            const grid = document.getElementById('video-grid');
+
+            if (nextCursor === null) return; // Nothing to load
+
+            const observer = new IntersectionObserver(async (entries) => {
+                if (entries[0].isIntersecting && !isLoading && nextCursor !== null) {
+                    isLoading = true;
+                    
+                    try {
+                        console.log("Loading more videos starting at cursor: " + nextCursor);
+                        
+                        const response = await fetch(`?handler=LoadMore&cursor=${nextCursor}`);
+                        
+                        if(!response.ok) throw new Error("Network response was not ok");
+                        
+                        const data = await response.json();
+
+                        if (data.videos && data.videos.length > 0) {
+                            data.videos.forEach(video => {
+                                const html = createVideoCard(video);
+                                grid.insertAdjacentHTML('beforeend', html);
+                            });
+
+                            
+                            nextCursor = data.nextCursor;
+
+                            
+                            if (nextCursor === null) {
+                                trigger.innerHTML = '<span class="text-muted small">You\'ve reached the end of the internet 🎬</span>';
+                            }
+                        } else {
+                            nextCursor = null;
+                            trigger.innerHTML = '<span class="text-muted small">You\'ve reached the end of the internet 🎬</span>';
+                        }
+                    } catch (error) {
+                        console.error("Error loading videos:", error);
+                    } finally {
+                        isLoading = false;
+                    }
+                }
+            }, { rootMargin: '200px' }); 
+
+            observer.observe(trigger);
+
+            
+            function createVideoCard(v) {
+                const previewAttr = v.previewUrl ? `data-preview="${v.previewUrl}"` : '';
+                const mouseOver = v.previewUrl ? `onmouseover="this.src='${v.previewUrl}'"` : '';
+                const mouseOut = `onmouseout="this.src='${v.thumbnailUrl}'"`;
+                const durationBadge = v.duration ? `<span class="badge bg-dark position-absolute bottom-0 end-0 m-2 opacity-75">${v.duration}</span>` : '';
+
+                return `
+                    <div class="col-12 col-md-6 col-lg-3 video-item fade-in">
+                        <a href="/Watch/${v.videoId}" class="video-card shadow-sm h-100 d-block text-decoration-none" style="background-color: #1F1F1F; border-radius: 20px; padding: 20px; color: white; display: block;">
+                            <div class="d-flex align-items-start mb-2">
+                                <i class="bi bi-play-circle me-2 fs-4 text-danger"></i>
+                                <div class="video-title text-truncate text-white" style="font-weight:600;">${v.title}</div>
+                            </div>
+
+                            <div class="thumbnail-container mb-2" style="position: relative; border-radius: 12px; overflow: hidden; background: #000; padding-top: 56.25%;">
+                                <img src="${v.thumbnailUrl}" 
+                                     data-static="${v.thumbnailUrl}"
+                                     ${previewAttr}
+                                     class="thumbnail-img" 
+                                     style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;"
+                                     alt="${v.title}"
+                                     ${mouseOver}
+                                     ${mouseOut} />
+                                ${durationBadge}
+                            </div>
+                            
+                            <div class="author-info d-flex align-items-center gap-2 small text-muted">
+                                <img src="${v.profilePic}" style="width:24px;height:24px;border-radius:50%;object-fit:cover;" />
+                                <span>${v.username}</span>
+                                <span class="ms-auto local-date text-muted small">${v.date}</span>
+                            </div>
+                        </a>
+                    </div>
+                `;
+            }
         });
     </script>
 }
