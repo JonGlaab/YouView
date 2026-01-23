@@ -1,6 +1,7 @@
 ﻿using FFMpegCore;
 using FFMpegCore.Enums;
 using System.Drawing;
+using System.Runtime.InteropServices;
 
 namespace YouView.Services;
 
@@ -11,41 +12,51 @@ public class VideoProcessor
     public VideoProcessor(IWebHostEnvironment env)
     {
         _env = env;
+
         
+        string osFolder = "";
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            osFolder = "win";
+        }
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+        {
+            osFolder = "mac";
+        }
+        else
+        {
+            osFolder = "linux"; 
+        }
+
         
         string root = _env.WebRootPath;
-        string ffmpegFolder = Path.Combine(root, "ffmpeg");
-
+        string ffmpegFolder = Path.Combine(root, "ffmpeg", osFolder);
         
         if (!Directory.Exists(ffmpegFolder))
         {
-            string nested = Path.Combine(root, "wwwroot", "ffmpeg");
-            if (Directory.Exists(nested))
-            {
-                ffmpegFolder = nested;
-            }
+            Console.WriteLine($"[ERROR] FFmpeg folder missing at: {ffmpegFolder}");
+            
         }
 
-        // position of file
+        
         GlobalFFOptions.Configure(new FFOptions { BinaryFolder = ffmpegFolder });
-
-        if (!System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows))
+        
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
             try 
             {
                 var ffmpegPath = Path.Combine(ffmpegFolder, "ffmpeg");
                 var ffprobePath = Path.Combine(ffmpegFolder, "ffprobe");
 
-                // Set permission to 777 (Read/Write/Execute for everyone)
                 if (File.Exists(ffmpegPath))
                     File.SetUnixFileMode(ffmpegPath, UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute | UnixFileMode.GroupExecute | UnixFileMode.OtherExecute);
-                
+            
                 if (File.Exists(ffprobePath))
                     File.SetUnixFileMode(ffprobePath, UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute | UnixFileMode.GroupExecute | UnixFileMode.OtherExecute);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Linux Permission Fix Failed: {ex.Message}");
+                Console.WriteLine($"Permission Fix Failed: {ex.Message}");
             }
         }
     }

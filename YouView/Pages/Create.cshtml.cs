@@ -19,7 +19,7 @@ namespace YouView.Pages
         private readonly IWebHostEnvironment _environment;
         private readonly AiService _aiService;
 
-        public Create(
+        public Create (
             BlobServiceClient blobServiceClient, 
             YouViewDbContext db, 
             VideoProcessor videoProcessor, 
@@ -68,15 +68,13 @@ namespace YouView.Pages
 
             try
             {
-                // Step A: Save Uploaded Video to Temp File
+                
                 using (var stream = new FileStream(tempVideoPath, FileMode.Create))
                 {
                     await VideoFile.CopyToAsync(stream);
                 }
 
-                // Step B: Generate Assets (Duration, GIF, AI)
-                // We wrap this in a TRY/CATCH block. 
-                // If FFmpeg fails (missing .exe or wrong OS), we SKIP it and continue uploading.
+                
                 TimeSpan duration = TimeSpan.Zero;
                 string aiSummary = "Processing...";
                 string previewUrl = "";
@@ -134,11 +132,9 @@ namespace YouView.Pages
                 
                 var vidBlob = vidContainer.GetBlobClient($"{uniqueId}{originalExtension}");
                 
-                // Uploading...
                 await vidBlob.UploadAsync(tempVideoPath, true);
                 var videoUrl = vidBlob.Uri.ToString();
-
-                // Step E: Upload Thumbnail to Azure
+                
                 string thumbnailUrl = "";
                 var thumbContainer = _blobServiceClient.GetBlobContainerClient("thumbnails");
                 await thumbContainer.CreateIfNotExistsAsync(PublicAccessType.Blob);
