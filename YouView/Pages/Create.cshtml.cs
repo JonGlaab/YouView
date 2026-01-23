@@ -57,12 +57,10 @@ namespace YouView.Pages
             Directory.CreateDirectory(tempFolder);
 
             var uniqueId = Guid.NewGuid().ToString();
+            var originalExtension = Path.GetExtension(VideoFile.FileName);
             
-            // 1. Raw Path (Original Upload)
-            var tempVideoPath = Path.Combine(tempFolder, $"{uniqueId}_{VideoFile.FileName}");
-            
-            //  Processed Path 
-            var tempProcessedPath = Path.Combine(tempFolder, $"{uniqueId}.mp4");
+            // 1. Raw Path (We will use this for everything)
+            var tempVideoPath = Path.Combine(tempFolder, $"{uniqueId}{originalExtension}");
             
             var tempThumbPath = Path.Combine(tempFolder, $"{uniqueId}_thumb.jpg");
             var tempPreviewPath = Path.Combine(tempFolder, $"{uniqueId}_preview.gif"); 
@@ -70,67 +68,77 @@ namespace YouView.Pages
 
             try
             {
-                //  Save Uploaded Video to Temp File
+                // Step A: Save Uploaded Video to Temp File
                 using (var stream = new FileStream(tempVideoPath, FileMode.Create))
                 {
                     await VideoFile.CopyToAsync(stream);
                 }
-                //  Convert to MP4 (Standardize Format)              
-                bool conversionSuccess = await _videoProcessor.ProcessVideoUploadAsync(tempVideoPath, tempProcessedPath);
-                
-                if (!conversionSuccess)
-                {
-                    Message = "Error converting video format. Please try again.";
-                    return Page();
-                }
 
-                // Process Metadata 
-                var duration = await _videoProcessor.GetVideoDurationAsync(tempProcessedPath);
-                
-                // Generate GIF from converted file
-                await _videoProcessor.GenerateGifPreviewAsync(tempProcessedPath, tempPreviewPath);
-                
-                // AI Services
+                // Step B: Generate Assets (Duration, GIF, AI)
+                // We wrap this in a TRY/CATCH block. 
+                // If FFmpeg fails (missing .exe or wrong OS), we SKIP it and continue uploading.
+                TimeSpan duration = TimeSpan.Zero;
                 string aiSummary = "Processing...";
-                
-                // Extract Audio from converted file
-                bool audioExtracted = await _videoProcessor.ExtractAudioAsync(tempProcessedPath, tempAudioPath);
+                string previewUrl = "";
 
-                if (audioExtracted)
+                try 
                 {
-                    string transcript = await _aiService.TranscribeAudioAsync(tempAudioPath);
-                    if (!string.IsNullOrEmpty(transcript))
+                    // 1. Get Duration
+                    duration = await _videoProcessor.GetVideoDurationAsync(tempVideoPath);
+
+                    // 2. Generate GIF Preview
+                    if (await _videoProcessor.GenerateGifPreviewAsync(tempVideoPath, tempPreviewPath))
                     {
-                        aiSummary = await _aiService.GenerateSummaryAsync(transcript);
+                        var prevContainer = _blobServiceClient.GetBlobContainerClient("previews");
+                        await prevContainer.CreateIfNotExistsAsync(PublicAccessType.Blob);
+                        var prevBlob = prevContainer.GetBlobClient($"{uniqueId}_preview.gif");
+                        await prevBlob.UploadAsync(tempPreviewPath, true);
+                        previewUrl = prevBlob.Uri.ToString();
                     }
-                    else 
+
+                    // 3. AI Pipeline (Audio -> Transcribe -> Summary)
+                    if (await _videoProcessor.ExtractAudioAsync(tempVideoPath, tempAudioPath))
                     {
-                        aiSummary = "Could not transcribe audio.";
+                        string transcript = await _aiService.TranscribeAudioAsync(tempAudioPath);
+                        if (!string.IsNullOrEmpty(transcript))
+                        {
+                            aiSummary = await _aiService.GenerateSummaryAsync(transcript);
+                        }
+                        else 
+                        {
+                            aiSummary = "Could not transcribe audio.";
+                        }
                     }
-                }
-                else
+                    else
+                    {
+                        aiSummary = "No audio track found.";
+                    }
+                } 
+                catch (Exception ex)
                 {
-                    aiSummary = "No audio track found.";
+                    Console.WriteLine($"Asset generation failed: {ex.Message}");
+                    aiSummary = "AI Summary unavailable.";
                 }
                 
-                // Generate Thumbnail (if needed) from converted file
+                // Step C: Generate Thumbnail (if user didn't provide one)
                 if (ThumbnailFile == null)
                 {
-                    await _videoProcessor.GenerateThumbnailAsync(tempProcessedPath, tempThumbPath);
+                    try {
+                        await _videoProcessor.GenerateThumbnailAsync(tempVideoPath, tempThumbPath);
+                    } catch { /* Ignore if fails */ }
                 }
 
-                //  Upload to Azure (Upload the MP4, not the raw file)
+                // Step D: Upload Video to Azure (The Original File)
                 var vidContainer = _blobServiceClient.GetBlobContainerClient("videos");
                 await vidContainer.CreateIfNotExistsAsync(PublicAccessType.Blob);
                 
-                // Force .mp4 extension for consistency
-                var vidBlob = vidContainer.GetBlobClient($"{uniqueId}.mp4");
+                var vidBlob = vidContainer.GetBlobClient($"{uniqueId}{originalExtension}");
                 
-                // Upload the PROCESSED file
-                await vidBlob.UploadAsync(tempProcessedPath, true);
+                // Uploading...
+                await vidBlob.UploadAsync(tempVideoPath, true);
                 var videoUrl = vidBlob.Uri.ToString();
 
-                // Upload Thumbnail to Azure
+                // Step E: Upload Thumbnail to Azure
                 string thumbnailUrl = "";
                 var thumbContainer = _blobServiceClient.GetBlobContainerClient("thumbnails");
                 await thumbContainer.CreateIfNotExistsAsync(PublicAccessType.Blob);
@@ -149,18 +157,7 @@ namespace YouView.Pages
                     thumbnailUrl = thumbBlob.Uri.ToString();
                 }
 
-                // Upload GIF to Azure
-                string previewUrl = "";
-                if (System.IO.File.Exists(tempPreviewPath))
-                {
-                    var prevContainer = _blobServiceClient.GetBlobContainerClient("previews");
-                    await prevContainer.CreateIfNotExistsAsync(PublicAccessType.Blob);
-                    var prevBlob = prevContainer.GetBlobClient($"{uniqueId}_preview.gif");
-                    await prevBlob.UploadAsync(tempPreviewPath, true);
-                    previewUrl = prevBlob.Uri.ToString();
-                }
-                
-                // Save to Database
+                // Step F: Save to Database
                 var video = new Video
                 {
                     UserId = userId,
@@ -190,9 +187,8 @@ namespace YouView.Pages
             }
             finally
             {
-                // Cleanup ALL temp files
-                if (System.IO.File.Exists(tempVideoPath)) System.IO.File.Delete(tempVideoPath);       // Raw
-                if (System.IO.File.Exists(tempProcessedPath)) System.IO.File.Delete(tempProcessedPath); // MP4
+                // Cleanup
+                if (System.IO.File.Exists(tempVideoPath)) System.IO.File.Delete(tempVideoPath);
                 if (System.IO.File.Exists(tempThumbPath)) System.IO.File.Delete(tempThumbPath);
                 if (System.IO.File.Exists(tempPreviewPath)) System.IO.File.Delete(tempPreviewPath);
                 if (System.IO.File.Exists(tempAudioPath)) System.IO.File.Delete(tempAudioPath);

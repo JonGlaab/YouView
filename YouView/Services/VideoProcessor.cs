@@ -63,28 +63,7 @@ public class VideoProcessor
             return TimeSpan.Zero;
         }
     }
-
-    public async Task<bool> ProcessVideoUploadAsync(string inputPath, string outputPath)
-    {
-        try
-        {
-            // Convert to mp4
-            await FFMpegArguments
-                .FromFileInput(inputPath)
-                .OutputToFile(outputPath, true, options => options
-                    .WithVideoCodec(VideoCodec.LibX264)
-                    .WithAudioCodec(AudioCodec.Aac)
-                    .WithFastStart()) 
-                .ProcessAsynchronously();
-            
-            return true;
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"FFMpeg Conversion Error: {ex.Message}");
-            return false;
-        }
-    }
+    
 
     // generate a thumbnail
     public async Task<bool> GenerateThumbnailAsync(string videoPath, string outputPath)
