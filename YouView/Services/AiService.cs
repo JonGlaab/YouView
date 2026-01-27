@@ -1,7 +1,7 @@
 ﻿using System.Net.Http.Headers;
 using System.Text.Json;
-using System.ClientModel; // For ApiKeyCredential
-using OpenAI; // <--- Use the standard OpenAI namespace
+using System.ClientModel; 
+using OpenAI; 
 using OpenAI.Chat;
 
 namespace YouView.Services;
