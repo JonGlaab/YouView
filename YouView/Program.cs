@@ -108,6 +108,8 @@ app.MapStaticAssets();
 app.MapRazorPages()
    .WithStaticAssets();
 
+Console.WriteLine("MODEL=" + (builder.Configuration["OpenRouterModel"] ?? "NULL"));
+
 try
 {
     app.Run();
